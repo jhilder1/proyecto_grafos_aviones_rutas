@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from app.services.data_loader import DataLoader
+from app.services.itinerary_service import construir_itinerario
+from app.services.algoritmos import Algoritmos
 import os
 
 router = APIRouter()
@@ -14,12 +16,15 @@ except Exception as e:
 
 @router.get("/network")
 async def get_network():
-    """
-    Retorna la representación completa de la red de rutas.
-    """
-    if not grafo_global:
-        raise HTTPException(status_code=500, detail="El grafo no pudo ser cargado.")
-    return grafo_global.to_dict()
+    try:
+        if not grafo_global:
+            raise HTTPException(status_code=500, detail="El grafo no pudo ser cargado.")
+
+        return grafo_global.to_dict()
+
+    except Exception as e:
+        print("ERROR EN /network:", e)
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.get("/airport/{iata}")
 async def get_airport(iata: str):
@@ -34,3 +39,30 @@ async def get_airport(iata: str):
         raise HTTPException(status_code=404, detail="Aeropuerto no encontrado.")
         
     return vertice.to_dict()
+
+@router.get("/route")
+async def get_route(origen: str, destino: str, criterio: str = "distancia"):
+    
+    if not grafo_global:
+        raise HTTPException(status_code=500, detail="Error cargando grafo")
+
+    origen = origen.upper()
+    destino = destino.upper()
+
+    if origen not in grafo_global.vertices or destino not in grafo_global.vertices:
+        raise HTTPException(status_code=404, detail="Origen o destino inválido")
+
+    # 🔹 Dijkstra
+    dist, pred, path = Algoritmos.dijkstra_simple(grafo_global, origen, destino, criterio)
+
+    if not path:
+        raise HTTPException(status_code=404, detail="No hay ruta")
+
+    # 🔹 Itinerario
+    itinerario, resumen = construir_itinerario(grafo_global, path, criterio)
+
+    return {
+        "ruta": path,
+        "itinerario": itinerario,
+        "resumen": resumen
+    }

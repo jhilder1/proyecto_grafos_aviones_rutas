@@ -1,46 +1,3 @@
-class Arista:
-    def __init__(self, vertice_destino, distanciaKm=0, aeronaves=None, costoBase=0, estanciaMinima=0):
-        self.vertice_destino = vertice_destino
-        self.distanciaKm = distanciaKm
-        self.aeronaves = aeronaves if aeronaves is not None else []
-        self.costoBase = costoBase
-        self.estanciaMinima = estanciaMinima
-
-    def getPeso(self):
-        return self.distanciaKm
-
-class Vertice:
-    def __init__(self, identificador, nombre="", ciudad="", pais="", zonaHoraria="", esHub=False, 
-                 costoAlojamiento=0, costoAlimentacion=0, actividades=None, trabajos=None):
-        self.identificador = identificador # ID (IATA)
-        self.nombre = nombre
-        self.ciudad = ciudad
-        self.pais = pais
-        self.zonaHoraria = zonaHoraria
-        self.esHub = esHub
-        self.costoAlojamiento = costoAlojamiento
-        self.costoAlimentacion = costoAlimentacion
-        self.actividades = actividades if actividades is not None else []
-        self.trabajos = trabajos if trabajos is not None else []
-        self.adyacencias = []
-
-    def agregar_adyacencia(self, arista):
-        self.adyacencias.append(arista)
-        
-    def to_dict(self):
-        return {
-            "id": self.identificador,
-            "nombre": self.nombre,
-            "ciudad": self.ciudad,
-            "pais": self.pais,
-            "zonaHoraria": self.zonaHoraria,
-            "esHub": self.esHub,
-            "costoAlojamiento": self.costoAlojamiento,
-            "costoAlimentacion": self.costoAlimentacion,
-            "actividades": self.actividades,
-            "trabajos": self.trabajos
-        }
-
 class Grafo:
     def __init__(self):
         self.vertices = {} # Usamos un diccionario para busqueda rapida por IATA
@@ -90,3 +47,6 @@ class Grafo:
                 })
                 
         return {"nodes": nodos, "edges": aristas, "config": self.config_global}
+
+
+    

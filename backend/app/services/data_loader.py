@@ -1,6 +1,9 @@
 import json
 import os
-from app.models.graph import Grafo, Vertice, Arista
+from app.models.graph import Grafo
+from app.models.vertice import Vertice
+from app.models.arista import Arista
+
 
 class DataLoader:
     @staticmethod
