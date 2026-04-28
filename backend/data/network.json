@@ -1,0 +1,96 @@
+{
+  "configuracionGlobal": {
+    "aeronaves": {
+      "A320": { "costoKm": 0.05, "tiempoKm": 0.12 },
+      "A320neo": { "costoKm": 0.04, "tiempoKm": 0.11 },
+      "A319": { "costoKm": 0.06, "tiempoKm": 0.13 },
+      "B737": { "costoKm": 0.05, "tiempoKm": 0.12 }
+    },
+    "presupuestoMinimoPorc": 35,
+    "intervaloAlojamiento": 20,
+    "intervaloAlimentacion": 8
+  },
+  "nodos": [
+    {
+      "id": "BOG",
+      "nombre": "El Dorado",
+      "ciudad": "Bogota",
+      "pais": "Colombia",
+      "zonaHoraria": "GMT-5",
+      "esHub": true,
+      "costoAlojamiento": 60,
+      "costoAlimentacion": 15,
+      "actividades": [
+        { "nombre": "Tour Monserrate", "tipo": "Turismo", "duracionMin": 180, "costoUSD": 25 },
+        { "nombre": "Museo del Oro", "tipo": "Cultura", "duracionMin": 120, "costoUSD": 10 }
+      ],
+      "trabajos": [
+        { "nombre": "Traductor Aeropuerto", "tarifaHora": 12, "maxHoras": 4 }
+      ]
+    },
+    {
+      "id": "MDE",
+      "nombre": "Jose Maria Cordova",
+      "ciudad": "Medellin",
+      "pais": "Colombia",
+      "zonaHoraria": "GMT-5",
+      "esHub": false,
+      "costoAlojamiento": 50,
+      "costoAlimentacion": 12,
+      "actividades": [
+        { "nombre": "Tour Comuna 13", "tipo": "Turismo", "duracionMin": 240, "costoUSD": 20 }
+      ],
+      "trabajos": []
+    },
+    {
+      "id": "LIM",
+      "nombre": "Jorge Chavez",
+      "ciudad": "Lima",
+      "pais": "Peru",
+      "zonaHoraria": "GMT-5",
+      "esHub": true,
+      "costoAlojamiento": 55,
+      "costoAlimentacion": 20,
+      "actividades": [
+        { "nombre": "Tour Gastronomico", "tipo": "Gastronomia", "duracionMin": 180, "costoUSD": 40 }
+      ],
+      "trabajos": [
+        { "nombre": "Asistente Counter", "tarifaHora": 10, "maxHoras": 6 }
+      ]
+    }
+  ],
+  "aristas": [
+    {
+      "origen": "BOG",
+      "destino": "MDE",
+      "distanciaKm": 240,
+      "aeronaves": ["A320", "A319"],
+      "costoBase": 0,
+      "estanciaMinima": 60
+    },
+    {
+      "origen": "MDE",
+      "destino": "BOG",
+      "distanciaKm": 240,
+      "aeronaves": ["A320", "A319"],
+      "costoBase": 0,
+      "estanciaMinima": 60
+    },
+    {
+      "origen": "BOG",
+      "destino": "LIM",
+      "distanciaKm": 1880,
+      "aeronaves": ["A320neo", "B737"],
+      "costoBase": 150,
+      "estanciaMinima": 120
+    },
+    {
+      "origen": "LIM",
+      "destino": "BOG",
+      "distanciaKm": 1880,
+      "aeronaves": ["A320neo", "B737"],
+      "costoBase": 150,
+      "estanciaMinima": 120
+    }
+  ]
+}
