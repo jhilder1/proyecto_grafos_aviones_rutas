@@ -7,7 +7,10 @@
   --text-muted: #A0A0B0;
   --accent-hub: #FF3366;
   --accent-secondary: #00E5FF;
+  --accent-gold: #FFD700;
   --glass-border: rgba(255, 255, 255, 0.1);
+  --success: #4CAF50;
+  --danger: #FF5252;
 }
 
 * {
@@ -29,6 +32,7 @@ body {
   height: 100vh;
 }
 
+/* ── Header ──────────────────────────────────────────── */
 .glass-header {
   position: absolute;
   top: 20px;
@@ -70,12 +74,12 @@ body {
   animation: pulse 1.5s infinite ease-in-out;
 }
 
-/* Sidebar Styles */
+/* ── Airport Sidebar ─────────────────────────────────── */
 .sidebar {
   position: absolute;
   top: 20px;
   right: 20px;
-  width: 320px;
+  width: 340px;
   background: var(--bg-panel);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -173,12 +177,437 @@ body {
   font-size: 13px;
 }
 
+.tag-aircraft {
+  border-color: rgba(0, 229, 255, 0.3);
+  background: rgba(0, 229, 255, 0.08);
+}
+
 .tag-empty {
   color: var(--text-muted);
   font-style: italic;
   font-size: 13px;
 }
 
+.route-item {
+  background: rgba(255, 255, 255, 0.04);
+  padding: 8px 10px;
+  border-radius: 8px;
+  border-left: 3px solid var(--accent-hub);
+}
+
+/* ── Planning Panel ──────────────────────────────────── */
+.planning-panel {
+  position: absolute;
+  top: 130px;
+  left: 20px;
+  width: 300px;
+  background: var(--bg-panel);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 20px;
+  z-index: 15;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  max-height: calc(100vh - 160px);
+  overflow-y: auto;
+}
+
+.planning-toggle-btn {
+  position: absolute;
+  top: 130px;
+  left: 20px;
+  z-index: 15;
+  background: var(--bg-panel);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--text-main);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.planning-toggle-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.planning-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.planning-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.planning-header .close-btn {
+  position: static;
+  font-size: 20px;
+}
+
+.mode-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 3px;
+}
+
+.mode-tab {
+  flex: 1;
+  padding: 8px 10px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+}
+
+.mode-tab.active {
+  background: rgba(0, 229, 255, 0.15);
+  color: var(--accent-secondary);
+}
+
+.mode-tab:hover:not(.active) {
+  color: var(--text-main);
+}
+
+.planning-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-group label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-weight: 600;
+}
+
+.form-group select,
+.form-group input[type="number"] {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-group select:focus,
+.form-group input[type="number"]:focus {
+  border-color: var(--accent-secondary);
+}
+
+.form-group select option {
+  background: #1a1a2e;
+  color: var(--text-main);
+}
+
+.form-row {
+  display: flex;
+  gap: 10px;
+}
+
+.form-row .form-group {
+  flex: 1;
+}
+
+.checkbox-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-main);
+  cursor: pointer;
+}
+
+.checkbox-label input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent-secondary);
+  cursor: pointer;
+}
+
+.planning-error {
+  background: rgba(255, 82, 82, 0.15);
+  border: 1px solid rgba(255, 82, 82, 0.3);
+  color: var(--danger);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  margin-top: 8px;
+}
+
+.planning-submit {
+  width: 100%;
+  margin-top: 12px;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent-secondary), #0099cc);
+  color: #000;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+  transition: transform 0.15s, box-shadow 0.2s;
+  letter-spacing: 0.3px;
+}
+
+.planning-submit:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(0, 229, 255, 0.3);
+}
+
+.planning-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ── Itinerary Results ───────────────────────────────── */
+.results-overlay {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 25;
+  width: min(90vw, 700px);
+}
+
+.results-panel {
+  background: var(--bg-panel);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.5);
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.results-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.results-header .close-btn {
+  position: static;
+}
+
+.results-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 10px;
+  padding: 3px;
+}
+
+.results-tab {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Inter', sans-serif;
+}
+
+.results-tab.active {
+  background: rgba(255, 215, 0, 0.15);
+  color: var(--accent-gold);
+}
+
+.results-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.route-path {
+  margin-bottom: 12px;
+}
+
+.route-path label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 600;
+}
+
+.route-nodes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.route-node {
+  background: rgba(255, 215, 0, 0.15);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--accent-gold);
+}
+
+.route-arrow {
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.resumen-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  padding: 14px;
+}
+
+.resumen-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.resumen-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: center;
+}
+
+.resumen-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+}
+
+.resumen-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent-secondary);
+}
+
+.tramos-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.tramo-card {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 10px 14px;
+  transition: border-color 0.2s;
+}
+
+.tramo-card:hover {
+  border-color: rgba(255, 215, 0, 0.3);
+}
+
+.tramo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.tramo-route {
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.tramo-aircraft {
+  font-size: 11px;
+  background: rgba(0, 229, 255, 0.12);
+  color: var(--accent-secondary);
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+.tramo-details {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.tramo-accumulated {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  font-style: italic;
+}
+
+/* ── Scrollbar ───────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* ── Animations ──────────────────────────────────────── */
 @keyframes slideIn {
   from {
     opacity: 0;

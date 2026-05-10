@@ -36,7 +36,49 @@ const AirportSidebar = ({ airport, onClose }) => {
                         <div className="tag">🍽️ Comida: ${airport.costoAlimentacion}</div>
                     </div>
                 </div>
-                
+
+                {/* Aircraft types operating from this airport */}
+                <div className="info-group">
+                    <label>Aeronaves que Operan</label>
+                    {airport.aeronaves_operando && airport.aeronaves_operando.length > 0 ? (
+                        <div className="tags" style={{ marginTop: '4px' }}>
+                            {airport.aeronaves_operando.map((tipo, idx) => (
+                                <div key={idx} className="tag tag-aircraft">
+                                    ✈️ {tipo}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="tag-empty">No hay aeronaves operando.</p>
+                    )}
+                </div>
+
+                {/* Outgoing routes */}
+                <div className="info-group">
+                    <label>Rutas Disponibles</label>
+                    {airport.rutas_salientes && airport.rutas_salientes.length > 0 ? (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
+                            {airport.rutas_salientes.map((ruta, idx) => (
+                                <div key={idx} className="route-item">
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                        <span style={{ fontWeight: 600 }}>
+                                            → {ruta.destino}
+                                        </span>
+                                        <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                                            {ruta.distanciaKm} km
+                                        </span>
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: 'var(--accent-secondary)', marginTop: '2px' }}>
+                                        {ruta.aeronaves.join(' • ')}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="tag-empty">No hay rutas salientes.</p>
+                    )}
+                </div>
+
                 <div className="info-group">
                     <label>Actividades Turísticas</label>
                     {airport.actividades && airport.actividades.length > 0 ? (

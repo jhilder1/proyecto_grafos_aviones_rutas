@@ -1,6 +1,6 @@
 class Grafo:
     def __init__(self):
-        self.vertices = {} # Usamos un diccionario para busqueda rapida por IATA
+        self.vertices = {} # Dictionary for fast IATA lookup
         self.config_global = {
             "aeronaves": {},
             "presupuestoMinimoPorc": 35,
@@ -22,6 +22,31 @@ class Grafo:
         self.config_global["intervaloAlojamiento"] = config.get("intervaloAlojamiento", 20)
         self.config_global["intervaloAlimentacion"] = config.get("intervaloAlimentacion", 8)
 
+    def obtener_aeronaves_desde(self, identificador):
+        """Returns the set of aircraft types operating from a given airport."""
+        vertice = self.vertices.get(identificador)
+        if not vertice:
+            return []
+        tipos = set()
+        for arista in vertice.adyacencias:
+            for tipo in arista.aeronaves:
+                tipos.add(tipo)
+        return sorted(list(tipos))
+
+    def obtener_rutas_desde(self, identificador):
+        """Returns summarized route info from a given airport."""
+        vertice = self.vertices.get(identificador)
+        if not vertice:
+            return []
+        rutas = []
+        for arista in vertice.adyacencias:
+            rutas.append({
+                "destino": arista.vertice_destino.identificador,
+                "distanciaKm": arista.distanciaKm,
+                "aeronaves": arista.aeronaves
+            })
+        return rutas
+
     def imprimir_grafo(self):
         for identificador, v in self.vertices.items():
             print("***************************")
@@ -31,10 +56,15 @@ class Grafo:
         print("-------------------------------------")
         
     def to_dict(self):
-        """Convierte el grafo a un formato amigable para el frontend (nodos y aristas)"""
-        nodos = [v.to_dict() for v in self.vertices.values()]
+        """Converts the graph to a frontend-friendly format (nodes and edges)"""
+        nodos = []
+        for v in self.vertices.values():
+            nodo_dict = v.to_dict()
+            nodo_dict["aeronaves_operando"] = self.obtener_aeronaves_desde(v.identificador)
+            nodo_dict["rutas_salientes"] = self.obtener_rutas_desde(v.identificador)
+            nodos.append(nodo_dict)
+
         aristas = []
-        
         for v in self.vertices.values():
             for a in v.adyacencias:
                 aristas.append({
@@ -47,6 +77,3 @@ class Grafo:
                 })
                 
         return {"nodes": nodos, "edges": aristas, "config": self.config_global}
-
-
-    
