@@ -35,6 +35,12 @@ class MejorRutaRequest(BaseModel):
     tiposTransporte: Optional[List[str]] = None
 
 
+class RouteToggleRequest(BaseModel):
+    origen: str
+    destino: str
+    activa: bool
+
+
 # ── Endpoints ───────────────────────────────────────────────────
 
 @router.get("/network")
@@ -183,6 +189,30 @@ async def plan_best_route(req: MejorRutaRequest):
         })
 
     return {"resultados": resultados}
+
+
+@router.post("/route/toggle")
+async def toggle_route(req: RouteToggleRequest):
+    """
+    R4: Interrupts or restores a specific route.
+    """
+    if not grafo_global:
+        raise HTTPException(status_code=500, detail="Error cargando grafo")
+
+    origen = req.origen.upper()
+    destino = req.destino.upper()
+
+    vertice_origen = grafo_global.obtener_vertice(origen)
+    if not vertice_origen:
+        raise HTTPException(status_code=404, detail=f"Origen '{origen}' no encontrado")
+
+    # Find the edge
+    arista = next((a for a in vertice_origen.adyacencias if a.vertice_destino.identificador == destino), None)
+    if not arista:
+        raise HTTPException(status_code=404, detail=f"Ruta {origen} -> {destino} no encontrada")
+
+    arista.activa = req.activa
+    return {"status": "success", "origen": origen, "destino": destino, "activa": arista.activa}
 
 
 # Legacy endpoint kept for compatibility

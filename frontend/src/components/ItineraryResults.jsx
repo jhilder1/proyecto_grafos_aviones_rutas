@@ -1,7 +1,42 @@
 import React, { useState } from 'react';
 
-const ItineraryResults = ({ results, onClose, onHighlightRoute }) => {
+const ItineraryResults = ({ results, onClose, onHighlightRoute, onStartTrip }) => {
     const [activeTab, setActiveTab] = useState(0);
+
+    // Build tabs first to use in useEffect
+    let tabs = [];
+    if (results.type === 'maximize') {
+        const d = results.data;
+        tabs = [
+            {
+                label: '💰 Max por Presupuesto',
+                ruta: d.itinerario_presupuesto?.ruta || [],
+                tramos: d.itinerario_presupuesto?.tramos || [],
+                resumen: d.itinerario_presupuesto?.resumen
+            },
+            {
+                label: '⏱️ Max por Tiempo',
+                ruta: d.itinerario_tiempo?.ruta || [],
+                tramos: d.itinerario_tiempo?.tramos || [],
+                resumen: d.itinerario_tiempo?.resumen
+            }
+        ];
+    } else if (results.type === 'route') {
+        tabs = (results.data.resultados || []).map(r => ({
+            label: `📍 ${r.criterio.charAt(0).toUpperCase() + r.criterio.slice(1)}`,
+            ruta: r.ruta || [],
+            tramos: r.itinerario || [],
+            resumen: r.resumen,
+            mensaje: r.mensaje
+        }));
+    }
+
+    // Auto-highlight first tab on mount
+    React.useEffect(() => {
+        if (tabs.length > 0 && tabs[0].ruta?.length > 1) {
+            onHighlightRoute(tabs[0].ruta);
+        }
+    }, [results]);
 
     if (!results) return null;
 
@@ -65,33 +100,7 @@ const ItineraryResults = ({ results, onClose, onHighlightRoute }) => {
     };
 
     // Build tabs based on result type
-    let tabs = [];
-
-    if (results.type === 'maximize') {
-        const d = results.data;
-        tabs = [
-            {
-                label: '💰 Max por Presupuesto',
-                ruta: d.itinerario_presupuesto?.ruta || [],
-                tramos: d.itinerario_presupuesto?.tramos || [],
-                resumen: d.itinerario_presupuesto?.resumen
-            },
-            {
-                label: '⏱️ Max por Tiempo',
-                ruta: d.itinerario_tiempo?.ruta || [],
-                tramos: d.itinerario_tiempo?.tramos || [],
-                resumen: d.itinerario_tiempo?.resumen
-            }
-        ];
-    } else if (results.type === 'route') {
-        tabs = (results.data.resultados || []).map(r => ({
-            label: `📍 ${r.criterio.charAt(0).toUpperCase() + r.criterio.slice(1)}`,
-            ruta: r.ruta || [],
-            tramos: r.itinerario || [],
-            resumen: r.resumen,
-            mensaje: r.mensaje
-        }));
-    }
+    // Moved up to useEffect scope
 
     const currentTab = tabs[activeTab] || tabs[0];
 
@@ -144,6 +153,15 @@ const ItineraryResults = ({ results, onClose, onHighlightRoute }) => {
                                     </div>
                                 </div>
                                 {renderResumen(currentTab.resumen)}
+                                
+                                <button 
+                                    className="start-trip-btn" 
+                                    onClick={() => onStartTrip(currentTab.tramos)}
+                                    disabled={!currentTab.tramos || currentTab.tramos.length === 0}
+                                >
+                                    ✈️ Iniciar Viaje (Simulación)
+                                </button>
+
                                 <div style={{ marginTop: '12px' }}>
                                     <label style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '1px' }}>
                                         Detalle de Tramos

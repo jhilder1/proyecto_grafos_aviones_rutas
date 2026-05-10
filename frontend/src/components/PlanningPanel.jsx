@@ -51,14 +51,15 @@ const PlanningPanel = ({ airports, onResults, onHighlightRoute }) => {
         setError('');
         setLoading(true);
         try {
-            const result = await planMaximizeDestinations({
+            const args = {
                 origen: maxOrigen,
                 presupuesto: Number(presupuesto),
                 tiempoDisponible: Number(tiempoDisponible),
                 excluirSecundarios,
                 tiposTransporte
-            });
-            onResults({ type: 'maximize', data: result });
+            };
+            const result = await planMaximizeDestinations(args);
+            onResults({ type: 'maximize', data: result, args });
             // Highlight the budget route by default
             if (result.itinerario_presupuesto?.ruta?.length > 1) {
                 onHighlightRoute(result.itinerario_presupuesto.ruta);
@@ -77,14 +78,15 @@ const PlanningPanel = ({ airports, onResults, onHighlightRoute }) => {
         setError('');
         setLoading(true);
         try {
-            const result = await planBestRoute({
+            const args = {
                 origen: routeOrigen,
                 destino: routeDestino,
                 criterios,
                 excluirSecundarios,
                 tiposTransporte
-            });
-            onResults({ type: 'route', data: result });
+            };
+            const result = await planBestRoute(args);
+            onResults({ type: 'route', data: result, args });
             // Highlight first result route
             if (result.resultados?.length > 0 && result.resultados[0].ruta?.length > 1) {
                 onHighlightRoute(result.resultados[0].ruta);
