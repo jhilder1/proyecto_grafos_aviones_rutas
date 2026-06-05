@@ -8,8 +8,8 @@ const CRITERIA = [
     { key: 'tiempo', label: 'Tiempo' }
 ];
 
-const PlanningPanel = ({ airports, onResults, onHighlightRoute }) => {
-    const [mode, setMode] = useState('maximize'); // 'maximize' or 'route'
+const PlanningPanel = ({ airports, onResults, onHighlightRoute, onStartFreeExploration }) => {
+    const [mode, setMode] = useState('maximize'); // 'maximize', 'route', 'explore'
     const [collapsed, setCollapsed] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
@@ -23,6 +23,11 @@ const PlanningPanel = ({ airports, onResults, onHighlightRoute }) => {
     const [routeOrigen, setRouteOrigen] = useState('');
     const [routeDestino, setRouteDestino] = useState('');
     const [criterios, setCriterios] = useState(['distancia']);
+
+    // Free exploration form
+    const [exploreOrigen, setExploreOrigen] = useState('');
+    const [explorePresupuesto, setExplorePresupuesto] = useState(3000);
+    const [exploreTiempo, setExploreTiempo] = useState(72);
 
     // Shared filters
     const [excluirSecundarios, setExcluirSecundarios] = useState(false);
@@ -60,7 +65,6 @@ const PlanningPanel = ({ airports, onResults, onHighlightRoute }) => {
             };
             const result = await planMaximizeDestinations(args);
             onResults({ type: 'maximize', data: result, args });
-            // Highlight the budget route by default
             if (result.itinerario_presupuesto?.ruta?.length > 1) {
                 onHighlightRoute(result.itinerario_presupuesto.ruta);
             }
@@ -87,7 +91,6 @@ const PlanningPanel = ({ airports, onResults, onHighlightRoute }) => {
             };
             const result = await planBestRoute(args);
             onResults({ type: 'route', data: result, args });
-            // Highlight first result route
             if (result.resultados?.length > 0 && result.resultados[0].ruta?.length > 1) {
                 onHighlightRoute(result.resultados[0].ruta);
             }
@@ -95,6 +98,12 @@ const PlanningPanel = ({ airports, onResults, onHighlightRoute }) => {
             setError(err.message || 'Error en la planificación');
         }
         setLoading(false);
+    };
+
+    const handleStartExploration = () => {
+        if (!exploreOrigen) { setError('Selecciona un aeropuerto de origen'); return; }
+        setError('');
+        onStartFreeExploration(exploreOrigen, Number(explorePresupuesto), Number(exploreTiempo));
     };
 
     if (collapsed) {
@@ -131,6 +140,13 @@ const PlanningPanel = ({ airports, onResults, onHighlightRoute }) => {
                     onClick={() => setMode('route')}
                 >
                     Mejor Ruta
+                </button>
+                <button
+                    className={`mode-tab ${mode === 'explore' ? 'active' : ''}`}
+                    onClick={() => setMode('explore')}
+                    style={{ color: mode === 'explore' ? '#FFD700' : undefined, borderColor: mode === 'explore' ? '#FFD700' : undefined }}
+                >
+                    🧭 Explorar
                 </button>
             </div>
 
@@ -214,41 +230,102 @@ const PlanningPanel = ({ airports, onResults, onHighlightRoute }) => {
                 </div>
             )}
 
-            {/* Shared filters */}
-            <div className="planning-form" style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '12px', marginTop: '4px' }}>
-                <div className="form-group">
-                    <label>Tipos de Transporte</label>
-                    <div className="checkbox-group">
-                        {TRANSPORT_TYPES.map(tipo => (
-                            <label key={tipo} className="checkbox-label">
-                                <input
-                                    type="checkbox"
-                                    checked={tiposTransporte.includes(tipo)}
-                                    onChange={() => toggleTransporte(tipo)}
-                                />
-                                {tipo}
-                            </label>
-                        ))}
+            {/* Free exploration form (R2.3) */}
+            {mode === 'explore' && (
+                <div className="planning-form">
+                    <div className="explore-info" style={{ 
+                        background: 'rgba(255, 215, 0, 0.08)', 
+                        border: '1px solid rgba(255, 215, 0, 0.2)',
+                        borderRadius: '8px', 
+                        padding: '10px', 
+                        marginBottom: '12px',
+                        fontSize: '12px',
+                        color: '#FFD700',
+                        lineHeight: '1.5'
+                    }}>
+                        🧭 <strong>Exploración Paso a Paso</strong>: Tú decides el destino en cada parada. 
+                        El sistema gestiona tu presupuesto dinámicamente: actividades, trabajos, 
+                        obligaciones biológicas y rutas subsidiadas.
+                    </div>
+                    <div className="form-group">
+                        <label>Aeropuerto de Origen</label>
+                        <select value={exploreOrigen} onChange={e => setExploreOrigen(e.target.value)}>
+                            <option value="">-- Seleccionar --</option>
+                            {sortedAirports.map(a => (
+                                <option key={a.id} value={a.id}>
+                                    {a.id} - {a.nombre} ({a.ciudad})
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="form-row">
+                        <div className="form-group">
+                            <label>Presupuesto (USD)</label>
+                            <input
+                                type="number"
+                                min="0"
+                                value={explorePresupuesto}
+                                onChange={e => setExplorePresupuesto(e.target.value)}
+                            />
+                        </div>
+                        <div className="form-group">
+                            <label>Tiempo (horas)</label>
+                            <input
+                                type="number"
+                                min="0"
+                                value={exploreTiempo}
+                                onChange={e => setExploreTiempo(e.target.value)}
+                            />
+                        </div>
                     </div>
                 </div>
-                <label className="checkbox-label" style={{ marginTop: '4px' }}>
-                    <input
-                        type="checkbox"
-                        checked={excluirSecundarios}
-                        onChange={e => setExcluirSecundarios(e.target.checked)}
-                    />
-                    Excluir aeropuertos secundarios
-                </label>
-            </div>
+            )}
+
+            {/* Shared filters (for maximize and route modes) */}
+            {mode !== 'explore' && (
+                <div className="planning-form" style={{ borderTop: '1px solid var(--glass-border)', paddingTop: '12px', marginTop: '4px' }}>
+                    <div className="form-group">
+                        <label>Tipos de Transporte</label>
+                        <div className="checkbox-group">
+                            {TRANSPORT_TYPES.map(tipo => (
+                                <label key={tipo} className="checkbox-label">
+                                    <input
+                                        type="checkbox"
+                                        checked={tiposTransporte.includes(tipo)}
+                                        onChange={() => toggleTransporte(tipo)}
+                                    />
+                                    {tipo}
+                                </label>
+                            ))}
+                        </div>
+                    </div>
+                    <label className="checkbox-label" style={{ marginTop: '4px' }}>
+                        <input
+                            type="checkbox"
+                            checked={excluirSecundarios}
+                            onChange={e => setExcluirSecundarios(e.target.checked)}
+                        />
+                        Excluir aeropuertos secundarios
+                    </label>
+                </div>
+            )}
 
             {error && <div className="planning-error">{error}</div>}
 
             <button
                 className="planning-submit"
-                onClick={mode === 'maximize' ? handleMaximize : handleBestRoute}
+                onClick={
+                    mode === 'maximize' ? handleMaximize : 
+                    mode === 'route' ? handleBestRoute : 
+                    handleStartExploration
+                }
                 disabled={loading}
+                style={mode === 'explore' ? { background: 'linear-gradient(135deg, #FFD700, #FF8C00)', color: '#000' } : {}}
             >
-                {loading ? 'Calculando...' : mode === 'maximize' ? '🚀 Calcular Itinerarios' : '🔍 Buscar Mejor Ruta'}
+                {loading ? 'Calculando...' : 
+                 mode === 'maximize' ? '🚀 Calcular Itinerarios' : 
+                 mode === 'route' ? '🔍 Buscar Mejor Ruta' :
+                 '🧭 Iniciar Exploración'}
             </button>
         </div>
     );

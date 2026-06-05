@@ -37,7 +37,7 @@ class Arista:
                 tiempo_km = config_aeronaves[tipo]["tiempoKm"]
 
                 if criterio == "costo":
-                    valor = self.distanciaKm * costo_km
+                    valor = 0 if self.costoBase == 0 else self.costoBase + (self.distanciaKm * costo_km)
                 elif criterio == "tiempo":
                     valor = self.distanciaKm * tiempo_km
                 else:

@@ -103,3 +103,14 @@ export const updateConfig = async (configData) => {
         throw error;
     }
 };
+
+export const fetchAirportNeighbors = async (iata) => {
+    try {
+        const response = await fetch(`${API_URL}/airport/${iata}/neighbors`);
+        if (!response.ok) throw new Error('Error fetching neighbors');
+        return await response.json();
+    } catch (error) {
+        console.error("Error fetching airport neighbors:", error);
+        throw error;
+    }
+};

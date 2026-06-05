@@ -2,15 +2,15 @@
     "configuracionGlobal": {
         "aeronaves": {
             "Avion Comercial": {
-                "costoKm": 0.18,
+                "costoKm": 0.27,
                 "tiempoKm": 0.7
             },
             "Avion Regional": {
-                "costoKm": 0.25,
+                "costoKm": 0.26,
                 "tiempoKm": 1.1
             },
             "Helice": {
-                "costoKm": 0.12,
+                "costoKm": 0.17,
                 "tiempoKm": 2.5
             }
         },
@@ -26,6 +26,7 @@
             "pais": "Colombia",
             "zonaHoraria": "GMT-5",
             "esHub": true,
+            "aerolineas": ["Avianca", "LATAM", "Copa Airlines", "Viva Air"],
             "costoAlojamiento": 60,
             "costoAlimentacion": 15,
             "actividades": [
@@ -57,6 +58,7 @@
             "pais": "Colombia",
             "zonaHoraria": "GMT-5",
             "esHub": false,
+            "aerolineas": ["Avianca", "Viva Air", "JetSMART"],
             "costoAlojamiento": 50,
             "costoAlimentacion": 12,
             "actividades": [
@@ -82,6 +84,7 @@
             "pais": "Colombia",
             "zonaHoraria": "GMT-5",
             "esHub": false,
+            "aerolineas": ["Avianca", "LATAM", "Satena"],
             "costoAlojamiento": 45,
             "costoAlimentacion": 11,
             "actividades": [
@@ -107,6 +110,7 @@
             "pais": "Colombia",
             "zonaHoraria": "GMT-5",
             "esHub": false,
+            "aerolineas": ["Avianca", "LATAM", "Copa Airlines"],
             "costoAlojamiento": 70,
             "costoAlimentacion": 18,
             "actividades": [
@@ -138,6 +142,7 @@
             "pais": "Peru",
             "zonaHoraria": "GMT-5",
             "esHub": true,
+            "aerolineas": ["LATAM", "Avianca", "Sky Airline", "JetSMART"],
             "costoAlojamiento": 55,
             "costoAlimentacion": 20,
             "actividades": [
@@ -163,6 +168,7 @@
             "pais": "Chile",
             "zonaHoraria": "GMT-4",
             "esHub": true,
+            "aerolineas": ["LATAM", "Sky Airline", "JetSMART", "Aeromexico"],
             "costoAlojamiento": 65,
             "costoAlimentacion": 22,
             "actividades": [
@@ -188,6 +194,7 @@
             "pais": "Brasil",
             "zonaHoraria": "GMT-3",
             "esHub": true,
+            "aerolineas": ["LATAM", "GOL", "Azul", "Avianca"],
             "costoAlojamiento": 75,
             "costoAlimentacion": 25,
             "actividades": [
@@ -219,6 +226,7 @@
             "pais": "Argentina",
             "zonaHoraria": "GMT-3",
             "esHub": true,
+            "aerolineas": ["Aerolineas Argentinas", "LATAM", "Flybondi", "JetSMART"],
             "costoAlojamiento": 50,
             "costoAlimentacion": 18,
             "actividades": [
@@ -250,6 +258,7 @@
             "pais": "Venezuela",
             "zonaHoraria": "GMT-4",
             "esHub": false,
+            "aerolineas": ["Conviasa", "Avior Airlines", "Copa Airlines"],
             "costoAlojamiento": 35,
             "costoAlimentacion": 10,
             "actividades": [
@@ -275,6 +284,7 @@
             "pais": "Ecuador",
             "zonaHoraria": "GMT-5",
             "esHub": false,
+            "aerolineas": ["TAME", "LATAM", "Avianca"],
             "costoAlojamiento": 40,
             "costoAlimentacion": 12,
             "actividades": [
@@ -300,6 +310,7 @@
             "pais": "Panama",
             "zonaHoraria": "GMT-5",
             "esHub": true,
+            "aerolineas": ["Copa Airlines", "Avianca", "LATAM", "Wingo"],
             "costoAlojamiento": 80,
             "costoAlimentacion": 20,
             "actividades": [
@@ -325,6 +336,7 @@
             "pais": "Mexico",
             "zonaHoraria": "GMT-6",
             "esHub": true,
+            "aerolineas": ["Aeromexico", "Volaris", "VivaAerobus", "Interjet"],
             "costoAlojamiento": 70,
             "costoAlimentacion": 16,
             "actividades": [
@@ -356,6 +368,7 @@
             "pais": "Mexico",
             "zonaHoraria": "GMT-5",
             "esHub": false,
+            "aerolineas": ["Volaris", "VivaAerobus", "Aeromexico"],
             "costoAlojamiento": 90,
             "costoAlimentacion": 22,
             "actividades": [
@@ -387,6 +400,7 @@
             "pais": "Guatemala",
             "zonaHoraria": "GMT-6",
             "esHub": false,
+            "aerolineas": ["Avianca", "Copa Airlines", "TAG Airlines"],
             "costoAlojamiento": 35,
             "costoAlimentacion": 10,
             "actividades": [
@@ -412,6 +426,7 @@
             "pais": "Costa Rica",
             "zonaHoraria": "GMT-6",
             "esHub": false,
+            "aerolineas": ["Copa Airlines", "Avianca", "Volaris Costa Rica"],
             "costoAlojamiento": 55,
             "costoAlimentacion": 15,
             "actividades": [

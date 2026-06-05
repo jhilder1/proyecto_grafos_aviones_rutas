@@ -25,6 +25,7 @@ const FinalReport = ({ history, initialBudget, initialTime, finalStats, airports
                                     <th>Estancia</th>
                                     <th>Gasto</th>
                                     <th>Ganancia</th>
+                                    <th>Total Incurrido</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -38,6 +39,9 @@ const FinalReport = ({ history, initialBudget, initialTime, finalStats, airports
                                             <td>{d.stayTime} min</td>
                                             <td>${d.cost}</td>
                                             <td>${d.earnings}</td>
+                                            <td style={{ color: (d.cost - d.earnings) > 0 ? 'var(--danger)' : 'var(--success)', fontWeight: 'bold' }}>
+                                                ${d.cost - d.earnings}
+                                            </td>
                                         </tr>
                                     );
                                 })}

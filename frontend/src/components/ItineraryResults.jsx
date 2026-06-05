@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const ItineraryResults = ({ results, onClose, onHighlightRoute, onStartTrip }) => {
+const ItineraryResults = ({ results, airports, onClose, onHighlightRoute, onStartTrip }) => {
     const [activeTab, setActiveTab] = useState(0);
 
     // Build tabs first to use in useEffect
@@ -40,6 +40,12 @@ const ItineraryResults = ({ results, onClose, onHighlightRoute, onStartTrip }) =
 
     if (!results) return null;
 
+    const getAirportName = (iata) => {
+        if (!airports) return iata;
+        const apt = airports.find(a => a.id === iata);
+        return apt ? `${apt.nombre} (${iata})` : iata;
+    };
+
     const renderTramos = (tramos) => {
         if (!tramos || tramos.length === 0) {
             return <p className="tag-empty">No se encontraron tramos.</p>;
@@ -49,8 +55,8 @@ const ItineraryResults = ({ results, onClose, onHighlightRoute, onStartTrip }) =
                 {tramos.map((tramo, idx) => (
                     <div key={idx} className="tramo-card">
                         <div className="tramo-header">
-                            <span className="tramo-route">
-                                {tramo.origen} → {tramo.destino}
+                            <span className="tramo-route" title={`${getAirportName(tramo.origen)} → ${getAirportName(tramo.destino)}`}>
+                                {getAirportName(tramo.origen)} → {getAirportName(tramo.destino)}
                             </span>
                             <span className="tramo-aircraft">{tramo.aeronave}</span>
                         </div>
@@ -144,7 +150,7 @@ const ItineraryResults = ({ results, onClose, onHighlightRoute, onStartTrip }) =
                                     <div className="route-nodes">
                                         {currentTab.ruta.map((node, idx) => (
                                             <span key={idx}>
-                                                <span className="route-node">{node}</span>
+                                                <span className="route-node" title={getAirportName(node)}>{node}</span>
                                                 {idx < currentTab.ruta.length - 1 && (
                                                     <span className="route-arrow">→</span>
                                                 )}

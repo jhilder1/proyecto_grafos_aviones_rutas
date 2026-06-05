@@ -19,9 +19,14 @@ const LegSelector = ({ originId, destId, airports, edges, config, stats, onSelec
         const time = edge.distanciaKm * conf.tiempoKm;
         const isSubsidized = edge.costoBase === 0 && cost === 0;
         
-        // 20% distance rule for subsidized
-        const maxSubsidizedDist = (stats.distanciaTotal + edge.distanciaKm) * 0.2;
-        const exceedsSubsidized = isSubsidized && (stats.distanciaSubsidiada + edge.distanciaKm > maxSubsidizedDist);
+        // Check subsidized rule: max 20% of total distance can be subsidized
+        // In guided mode, we can estimate the total trip distance
+        // We approximate it by using stats.distanciaTotal + edge.distanciaKm as a simple check for now,
+        // but a proper fix would require knowing the total planned itinerary distance.
+        // For now, we will use initialBudget as a rough proxy or just allow it if it doesn't exceed 20% of CURRENT total + leg
+        const totalDistAfter = stats.distanciaTotal + edge.distanciaKm;
+        const maxSubsidized = totalDistAfter * 0.2;
+        const exceedsSubsidized = isSubsidized && (stats.distanciaSubsidiada + edge.distanciaKm > maxSubsidized);
 
         return {
             type,

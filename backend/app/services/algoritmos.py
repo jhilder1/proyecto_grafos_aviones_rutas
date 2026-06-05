@@ -192,7 +192,15 @@ class Algoritmos:
                     costo_km = config_aeronaves[tipo]["costoKm"]
                     tiempo_km = config_aeronaves[tipo]["tiempoKm"]
 
-                    costo_tramo = arista.distanciaKm * costo_km
+                    # If costoBase is 0, the route is subsidized and costs nothing.
+                    # Otherwise, add costoBase to the per-km cost.
+                    if arista.costoBase == 0:
+                        costo_tramo = 0
+                        es_subsidiada = True
+                    else:
+                        costo_tramo = arista.costoBase + (arista.distanciaKm * costo_km)
+                        es_subsidiada = False
+                        
                     tiempo_tramo = arista.distanciaKm * tiempo_km
 
                     nuevo_costo = costo_acum + costo_tramo

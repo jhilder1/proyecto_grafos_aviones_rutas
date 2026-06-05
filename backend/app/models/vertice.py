@@ -1,6 +1,7 @@
 class Vertice:
     def __init__(self, identificador, nombre="", ciudad="", pais="", zonaHoraria="", esHub=False, 
-                 costoAlojamiento=0, costoAlimentacion=0, actividades=None, trabajos=None, activa=True):
+                 costoAlojamiento=0, costoAlimentacion=0, actividades=None, trabajos=None,
+                 aerolineas=None, activa=True):
         self.identificador = identificador # ID (IATA)
         self.nombre = nombre
         self.ciudad = ciudad
@@ -11,6 +12,7 @@ class Vertice:
         self.costoAlimentacion = costoAlimentacion
         self.actividades = actividades if actividades is not None else []
         self.trabajos = trabajos if trabajos is not None else []
+        self.aerolineas = aerolineas if aerolineas is not None else []
         self.adyacencias = []
         self.activa = activa
 
@@ -28,5 +30,6 @@ class Vertice:
             "costoAlojamiento": self.costoAlojamiento,
             "costoAlimentacion": self.costoAlimentacion,
             "actividades": self.actividades,
-            "trabajos": self.trabajos
+            "trabajos": self.trabajos,
+            "aerolineas": self.aerolineas
         }

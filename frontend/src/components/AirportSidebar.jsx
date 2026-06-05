@@ -53,6 +53,22 @@ const AirportSidebar = ({ airport, onClose }) => {
                     )}
                 </div>
 
+                {/* Airlines operating from this airport */}
+                <div className="info-group">
+                    <label>Aerolíneas que Operan</label>
+                    {airport.aerolineas && airport.aerolineas.length > 0 ? (
+                        <div className="tags" style={{ marginTop: '4px' }}>
+                            {airport.aerolineas.map((aerolinea, idx) => (
+                                <div key={idx} className="tag" style={{ borderColor: 'rgba(255, 215, 0, 0.3)', background: 'rgba(255, 215, 0, 0.08)' }}>
+                                    🏢 {aerolinea}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <p className="tag-empty">No hay aerolíneas registradas.</p>
+                    )}
+                </div>
+
                 {/* Outgoing routes */}
                 <div className="info-group">
                     <label>Rutas Disponibles</label>

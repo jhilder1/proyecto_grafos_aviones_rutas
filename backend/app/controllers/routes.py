@@ -114,6 +114,57 @@ async def get_airport(iata: str):
     return data
 
 
+@router.get("/airport/{iata}/neighbors")
+async def get_airport_neighbors(iata: str):
+    """
+    R2.3: Returns all reachable destinations from an airport with detailed
+    cost/time information per aircraft type for the free exploration mode.
+    """
+    if not grafo_global:
+        raise HTTPException(status_code=500, detail="El grafo no pudo ser cargado.")
+    vertice = grafo_global.obtener_vertice(iata.upper())
+    if not vertice:
+        raise HTTPException(status_code=404, detail="Aeropuerto no encontrado.")
+
+    config_aeronaves = grafo_global.config_global.get("aeronaves", {})
+    neighbors = []
+
+    for arista in vertice.adyacencias:
+        if hasattr(arista, "activa") and not arista.activa:
+            continue
+
+        dest = arista.vertice_destino
+        opciones_aeronave = []
+        for tipo in arista.aeronaves:
+            if tipo not in config_aeronaves:
+                continue
+            costo_km = config_aeronaves[tipo]["costoKm"]
+            tiempo_km = config_aeronaves[tipo]["tiempoKm"]
+            
+            # If costoBase is 0, it's subsidized
+            costo_calc = 0 if arista.costoBase == 0 else arista.costoBase + (arista.distanciaKm * costo_km)
+            
+            opciones_aeronave.append({
+                "tipo": tipo,
+                "costo": round(costo_calc, 2),
+                "tiempo": round(arista.distanciaKm * tiempo_km, 2)
+            })
+
+        neighbors.append({
+            "destino_id": dest.identificador,
+            "nombre": dest.nombre,
+            "ciudad": dest.ciudad,
+            "pais": dest.pais,
+            "esHub": dest.esHub,
+            "distanciaKm": arista.distanciaKm,
+            "costoBase": arista.costoBase,
+            "estanciaMinima": arista.estanciaMinima,
+            "opciones_aeronave": opciones_aeronave
+        })
+
+    return {"origen": iata.upper(), "destinos": neighbors}
+
+
 @router.post("/plan/maximize")
 async def plan_maximize_destinations(req: MaxDestinosRequest):
     """

@@ -32,7 +32,8 @@ class DataLoader:
                 costoAlojamiento=aero_data.get("costoAlojamiento", 0),
                 costoAlimentacion=aero_data.get("costoAlimentacion", 0),
                 actividades=aero_data.get("actividades", []),
-                trabajos=aero_data.get("trabajos", [])
+                trabajos=aero_data.get("trabajos", []),
+                aerolineas=aero_data.get("aerolineas", [])
             )
             grafo.agregar_vertice(vertice)
             

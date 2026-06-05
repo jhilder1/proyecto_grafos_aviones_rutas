@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import NetworkGraph from './components/NetworkGraph';
 import AirportSidebar from './components/AirportSidebar';
 import PlanningPanel from './components/PlanningPanel';
@@ -9,6 +9,7 @@ import LegSelector from './components/LegSelector';
 import FinalReport from './components/FinalReport';
 import StartupScreen from './components/StartupScreen';
 import ConfigPanel from './components/ConfigPanel';
+import DestinationPicker from './components/DestinationPicker';
 import { fetchNetworkData, toggleRouteStatus, planBestRoute, planMaximizeDestinations } from './services/api';
 import './index.css';
 
@@ -28,8 +29,11 @@ function App() {
   const [interruptedLeg, setInterruptedLeg] = useState(null);
   const [planningParams, setPlanningParams] = useState(null);
   
-  // Phase Management: 'flying' | 'at_airport' | 'selecting_leg' | 'finished'
+  // Phase Management: 'flying' | 'at_airport' | 'selecting_leg' | 'picking_destination' | 'finished'
   const [tripPhase, setTripPhase] = useState('none');
+  
+  // Trip mode: 'guided' (follows pre-calculated itinerary) | 'free' (R2.3 step-by-step exploration)
+  const [tripMode, setTripMode] = useState('guided');
   
   const [showConfig, setShowConfig] = useState(false);
 
@@ -38,6 +42,7 @@ function App() {
     budget: 0,
     initialBudget: 0,
     timeRemaining: 0,
+    initialTime: 0,
     distanciaTotal: 0,
     distanciaSubsidiada: 0,
     hoursSinceMeal: 0,
@@ -52,6 +57,9 @@ function App() {
     activities: [],
     jobs: []
   });
+
+  // Visited airports for free exploration
+  const [visitedAirports, setVisitedAirports] = useState([]);
 
   const loadData = useCallback(async () => {
     setAppState('loading');
@@ -68,17 +76,21 @@ function App() {
     setIsSimulating(false);
     setActiveItinerary(null);
     setTripPhase('none');
+    setTripMode('guided');
+    setVisitedAirports([]);
   };
 
+  // ── Guided Trip (R2.2) ─────────────────────────────────────
   const handleStartTrip = (itinerary, budget, timeHours) => {
     setActiveItinerary(itinerary);
     setCurrentLegIndex(0);
     setTripPhase('at_airport');
     setIsSimulating(true);
+    setTripMode('guided');
     
     const startAirport = itinerary[0].origen;
-    const initialBudget = budget || 5000; // Default if not provided
-    const initialTime = (timeHours || 72) * 60; // Default 72h if not provided
+    const initialBudget = budget || 5000;
+    const initialTime = (timeHours || 72) * 60;
 
     setTripStats({
       budget: initialBudget,
@@ -98,6 +110,43 @@ function App() {
       activities: [],
       jobs: []
     });
+
+    setVisitedAirports([startAirport]);
+    setHighlightedRoute([startAirport]);
+  };
+
+  // ── Free Exploration Trip (R2.3) ───────────────────────────
+  const handleStartFreeExploration = (originIata, budget, timeHours) => {
+    setTripPhase('at_airport');
+    setIsSimulating(true);
+    setTripMode('free');
+    setActiveItinerary(null);
+    
+    const initialBudget = budget || 5000;
+    const initialTime = (timeHours || 72) * 60;
+
+    setTripStats({
+      budget: initialBudget,
+      initialBudget: initialBudget,
+      initialTime: initialTime,
+      timeRemaining: initialTime,
+      distanciaTotal: 0,
+      distanciaSubsidiada: 0,
+      hoursSinceMeal: 0,
+      hoursSinceSleep: 0,
+      currentAirportId: originIata
+    });
+
+    setHistory({
+      destinations: [],
+      flights: [],
+      activities: [],
+      jobs: []
+    });
+
+    setVisitedAirports([originIata]);
+    setHighlightedRoute([originIata]);
+    setPlanResults(null);
   };
 
   const handleLinkClick = async (link) => {
@@ -110,8 +159,7 @@ function App() {
       if (activeLeg && activeLeg.origen === sourceId && activeLeg.destino === targetId && !newStatus) {
         setInterruptedLeg(activeLeg);
       }
-    } catch (error) {
-      console.error(error);
+    } catch (err) {
       alert("Error al modificar estado de la ruta");
     }
   };
@@ -139,17 +187,37 @@ function App() {
       jobs: [...prev.jobs, ...stayData.jobs]
     }));
 
-    // Check if trip is finished (reached the last destination in itinerary)
-    if (currentLegIndex >= activeItinerary.length) {
-      setTripPhase('finished');
-      setIsSimulating(false);
+    if (tripMode === 'free') {
+      // In free mode, go to destination picker after stay
+      setTripPhase('picking_destination');
     } else {
-      setTripPhase('selecting_leg');
+      // Guided mode: check if trip is finished
+      if (currentLegIndex >= activeItinerary.length) {
+        setTripPhase('finished');
+        setIsSimulating(false);
+      } else {
+        setTripPhase('selecting_leg');
+      }
     }
   };
 
+  // ── Free Exploration: Destination chosen ────────────────────
+  const handleFreeDestinationSelected = (destData) => {
+    // destData: { destino, aircraft, cost, time, distance, isSubsidized }
+    setActiveLeg({
+      origen: tripStats.currentAirportId,
+      destino: destData.destino,
+      aeronave: destData.aircraft,
+      distancia: destData.distance,
+      costo: destData.cost,
+      tiempo: destData.time
+    });
+    
+    setTripPhase('flying');
+  };
+
+  // ── Guided: Leg chosen ──────────────────────────────────────
   const handleLegSelected = (legData) => {
-    // legData: { aircraft, cost, time, distance, isSubsidized }
     setActiveLeg({
       origen: tripStats.currentAirportId,
       destino: activeItinerary[currentLegIndex].destino,
@@ -164,16 +232,23 @@ function App() {
 
   const handleFlightComplete = (flightData) => {
     // Update stats
-    setTripStats(prev => ({
-      ...prev,
-      budget: prev.budget - flightData.costo,
-      timeRemaining: prev.timeRemaining - flightData.tiempo,
-      distanciaTotal: prev.distanciaTotal + flightData.distancia,
-      distanciaSubsidiada: prev.distanciaSubsidiada + (flightData.costo === 0 ? flightData.distancia : 0),
-      hoursSinceMeal: prev.hoursSinceMeal + (flightData.tiempo / 60),
-      hoursSinceSleep: prev.hoursSinceSleep + (flightData.tiempo / 60),
-      currentAirportId: flightData.destino
-    }));
+    setTripStats(prev => {
+      const newHoursSinceMeal = prev.hoursSinceMeal + (flightData.tiempo / 60);
+      const originNode = graphData.nodes.find(n => n.id === flightData.origen);
+      
+      return {
+        ...prev,
+        budget: prev.budget - flightData.costo,
+        timeRemaining: prev.timeRemaining - flightData.tiempo,
+        distanciaTotal: prev.distanciaTotal + flightData.distancia,
+        distanciaSubsidiada: prev.distanciaSubsidiada + (flightData.costo === 0 ? flightData.distancia : 0),
+        hoursSinceMeal: newHoursSinceMeal,
+        hoursSinceSleep: prev.hoursSinceSleep + (flightData.tiempo / 60),
+        currentAirportId: flightData.destino,
+        mealTriggeredDuringFlight: prev.hoursSinceMeal < 8 && newHoursSinceMeal >= 8,
+        lastAirportMealCost: originNode ? originNode.costoAlimentacion : 0
+      };
+    });
 
     // Record flight
     setHistory(prev => ({
@@ -181,7 +256,14 @@ function App() {
       flights: [...prev.flights, flightData]
     }));
 
-    setCurrentLegIndex(prev => prev + 1);
+    // Update visited airports and highlighted route
+    setVisitedAirports(prev => [...prev, flightData.destino]);
+    setHighlightedRoute(prev => [...prev, flightData.destino]);
+
+    if (tripMode === 'guided') {
+      setCurrentLegIndex(prev => prev + 1);
+    }
+    
     setTripPhase('at_airport');
   };
 
@@ -190,7 +272,14 @@ function App() {
     setTravelerProgress(0);
     setActiveLeg(null);
     
-    // Auto Recalculate
+    if (tripMode === 'free') {
+      // In free mode, just go back to picking
+      setTripStats(prev => ({ ...prev, currentAirportId: returnAirport }));
+      setTripPhase('picking_destination');
+      return;
+    }
+
+    // Guided mode: Auto Recalculate
     if (planningParams) {
       try {
         let newResults;
@@ -204,8 +293,7 @@ function App() {
         setIsSimulating(false);
         setActiveItinerary(null);
         setTripPhase('none');
-      } catch (error) {
-        console.error(error);
+      } catch (err) {
         alert("No se pudo encontrar una ruta alternativa");
         setIsSimulating(false);
         setTripPhase('none');
@@ -213,12 +301,20 @@ function App() {
     }
   };
 
+  const handleFinishFreeTrip = () => {
+    setTripPhase('finished');
+    setIsSimulating(false);
+  };
+
   const handleStopTrip = () => {
     setIsSimulating(false);
     setTripPhase('none');
+    setTripMode('guided');
     setActiveItinerary(null);
     setActiveLeg(null);
     setTravelerProgress(0);
+    setVisitedAirports([]);
+    setHighlightedRoute([]);
   };
 
   return (
@@ -233,17 +329,17 @@ function App() {
 
       {appState === 'ready' && (
         <>
-          <header className="glass-header">
+          <header className="glass-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <h1>SkyRoute <span>Planner</span></h1>
               <p className="subtitle">Network Optimization Graph</p>
             </div>
-            <button
-              className="header-config-btn"
+            <button 
+              className="btn-secondary" 
               onClick={() => setShowConfig(true)}
+              style={{ fontSize: '14px', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}
             >
-              <span className="header-config-icon">⚙️</span>
-              <span>Configuración</span>
+              ⚙️ Configuración
             </button>
           </header>
 
@@ -263,6 +359,7 @@ function App() {
               setPlanningParams({ type: results.type, args: results.args });
             }}
             onHighlightRoute={(route) => setHighlightedRoute(route)}
+            onStartFreeExploration={handleStartFreeExploration}
           />
 
           {showConfig && (
@@ -283,6 +380,7 @@ function App() {
       {planResults && tripPhase === 'none' && (
         <ItineraryResults
           results={planResults}
+          airports={graphData.nodes}
           onClose={handleClearResults}
           onHighlightRoute={(route) => setHighlightedRoute(route)}
           onStartTrip={(itinerary) => handleStartTrip(itinerary, planningParams.args.presupuesto, planningParams.args.tiempoDisponible)}
@@ -299,7 +397,8 @@ function App() {
         />
       )}
 
-      {isSimulating && tripPhase === 'selecting_leg' && (
+      {/* Guided mode: select aircraft for next pre-calculated leg */}
+      {isSimulating && tripPhase === 'selecting_leg' && tripMode === 'guided' && (
         <LegSelector
           originId={tripStats.currentAirportId}
           destId={activeItinerary[currentLegIndex]?.destino}
@@ -311,9 +410,22 @@ function App() {
         />
       )}
 
+      {/* R2.3 Free mode: pick destination freely */}
+      {isSimulating && tripPhase === 'picking_destination' && tripMode === 'free' && (
+        <DestinationPicker
+          currentAirportId={tripStats.currentAirportId}
+          airports={graphData.nodes}
+          stats={tripStats}
+          config={graphData.config}
+          visitedAirports={visitedAirports}
+          onSelectDestination={handleFreeDestinationSelected}
+          onFinishTrip={handleFinishFreeTrip}
+        />
+      )}
+
       {isSimulating && tripPhase === 'flying' && activeLeg && (
         <TripSimulator 
-          itinerary={[activeLeg]} // In interactive mode, we fly one leg at a time
+          itinerary={[activeLeg]}
           onProgressUpdate={(p) => setTravelerProgress(p)}
           onLegComplete={() => handleFlightComplete(activeLeg)}
           onInterruption={handleInterruptionComplete}
@@ -328,6 +440,7 @@ function App() {
           initialTime={tripStats.initialTime}
           finalStats={tripStats}
           airports={graphData.nodes}
+          highlightedRoute={highlightedRoute}
           onClose={handleClearResults} 
         />
       )}
