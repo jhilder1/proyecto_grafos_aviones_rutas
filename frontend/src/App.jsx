@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import NetworkGraph from './components/NetworkGraph';
 import AirportSidebar from './components/AirportSidebar';
 import PlanningPanel from './components/PlanningPanel';
@@ -110,7 +110,8 @@ function App() {
       if (activeLeg && activeLeg.origen === sourceId && activeLeg.destino === targetId && !newStatus) {
         setInterruptedLeg(activeLeg);
       }
-    } catch (err) {
+    } catch (error) {
+      console.error(error);
       alert("Error al modificar estado de la ruta");
     }
   };
@@ -203,7 +204,8 @@ function App() {
         setIsSimulating(false);
         setActiveItinerary(null);
         setTripPhase('none');
-      } catch (err) {
+      } catch (error) {
+        console.error(error);
         alert("No se pudo encontrar una ruta alternativa");
         setIsSimulating(false);
         setTripPhase('none');
@@ -231,17 +233,17 @@ function App() {
 
       {appState === 'ready' && (
         <>
-          <header className="glass-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <header className="glass-header">
             <div>
               <h1>SkyRoute <span>Planner</span></h1>
               <p className="subtitle">Network Optimization Graph</p>
             </div>
-            <button 
-              className="btn-secondary" 
+            <button
+              className="header-config-btn"
               onClick={() => setShowConfig(true)}
-              style={{ fontSize: '14px', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}
             >
-              ⚙️ Configuración
+              <span className="header-config-icon">⚙️</span>
+              <span>Configuración</span>
             </button>
           </header>
 

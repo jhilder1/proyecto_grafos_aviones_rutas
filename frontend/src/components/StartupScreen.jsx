@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React, { useRef, useState } from 'react';
 import { uploadNetworkData } from '../services/api';
 
@@ -10,43 +11,51 @@ const StartupScreen = ({ onStart }) => {
         onStart(); // Proceed with default backend graph
     };
 
-    const handleFileUpload = (e) => {
+    const handleFileUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
 
         setLoading(true);
         setError(null);
 
-        const reader = new FileReader();
-        reader.onload = async (event) => {
-            try {
-                const jsonData = JSON.parse(event.target.result);
-                await uploadNetworkData(jsonData);
-                onStart(); // Successfully uploaded and reloaded backend
-            } catch (err) {
-                console.error("Upload error:", err);
-                setError("Error procesando el archivo JSON. Verifica su formato.");
-                setLoading(false);
-            }
-        };
-        reader.readAsText(file);
+        try {
+            const fileContent = await file.text();
+            const jsonData = JSON.parse(fileContent);
+            await uploadNetworkData(jsonData);
+            onStart(); // Successfully uploaded and reloaded backend
+        } catch (err) {
+            console.error("Upload error:", err);
+            setError("Error procesando el archivo JSON. Verifica su formato.");
+            setLoading(false);
+        }
     };
 
     return (
         <div className="startup-overlay">
             <div className="startup-panel animate-slide-in">
-                <h2>✈️ Bienvenido a SkyRoute Planner</h2>
-                <p>Selecciona una opción para comenzar a planificar:</p>
+                <div className="startup-badge">SkyRoute Planner</div>
+                <h2>✈️ Bienvenido</h2>
+                <p>Selecciona una opción para comenzar a planificar tu red de vuelos.</p>
 
                 <div className="startup-actions">
-                    <button className="btn-primary" onClick={handleDefaultStart} disabled={loading}>
-                        Usar Red por Defecto
+                    <button className="startup-button startup-button-primary" onClick={handleDefaultStart} disabled={loading}>
+                        <span className="startup-button-icon">⚡</span>
+                        <span>
+                            <strong>Usar red por defecto</strong>
+                            <small>Inicia con la red cargada en el sistema</small>
+                        </span>
                     </button>
-                    
-                    <div className="divider">O</div>
-                    
-                    <button className="btn-secondary" onClick={() => fileInputRef.current.click()} disabled={loading}>
-                        Cargar JSON Externo
+
+                    <div className="startup-divider">
+                        <span>o</span>
+                    </div>
+
+                    <button className="startup-button startup-button-secondary" onClick={() => fileInputRef.current.click()} disabled={loading}>
+                        <span className="startup-button-icon">📄</span>
+                        <span>
+                            <strong>Cargar JSON externo</strong>
+                            <small>Importa una red personalizada desde tu archivo</small>
+                        </span>
                     </button>
                     <input 
                         type="file" 

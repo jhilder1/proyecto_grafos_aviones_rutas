@@ -46,6 +46,10 @@ body {
   top: 20px;
   left: 20px;
   z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
   background: var(--bg-panel);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
@@ -63,6 +67,47 @@ body {
 
 .glass-header h1 span {
   color: var(--accent-secondary);
+}
+
+.header-config-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  border-radius: 14px;
+  border: 1px solid rgba(0, 229, 255, 0.26);
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.16), rgba(255, 255, 255, 0.05));
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.header-config-btn:hover {
+  transform: translateY(-1px);
+  border-color: rgba(0, 229, 255, 0.42);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3);
+  filter: brightness(1.06);
+}
+
+.header-config-btn:focus-visible {
+  outline: 2px solid var(--accent-secondary);
+  outline-offset: 2px;
+}
+
+.header-config-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  background: rgba(0, 229, 255, 0.12);
+  color: var(--accent-secondary);
+  font-size: 15px;
 }
 
 .subtitle {
@@ -465,7 +510,7 @@ body {
 
 .confirm-btn:disabled {
   background: #333;
-  color: #666;
+  color: #c7c7d6;
 }
 
 /* Aircraft Selector */
@@ -541,6 +586,139 @@ body {
   padding: 40px;
   overflow-y: auto;
   box-shadow: 0 0 100px rgba(0, 229, 255, 0.1);
+}
+
+.config-panel {
+  max-width: 680px;
+}
+
+.report-header,
+.config-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--glass-border);
+}
+
+.report-header h2,
+.config-header h2 {
+  font-size: 22px;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.config-description {
+  margin-bottom: 20px;
+  color: var(--text-muted);
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.config-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.config-card {
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.03));
+}
+
+.config-card h4 {
+  margin: 0 0 12px 0;
+  color: var(--accent-gold);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.config-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.config-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.config-field label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-weight: 700;
+}
+
+.config-field input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(10, 10, 16, 0.7);
+  color: var(--text-main);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.config-field input:focus {
+  border-color: rgba(0, 229, 255, 0.45);
+  box-shadow: 0 0 0 3px rgba(0, 229, 255, 0.12);
+  background: rgba(10, 10, 16, 0.9);
+}
+
+.config-error {
+  margin-top: 15px;
+}
+
+.config-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 22px;
+}
+
+.config-btn {
+  min-width: 156px;
+  padding: 12px 18px;
+  border: none;
+  border-radius: 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.config-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: brightness(1.04);
+}
+
+.config-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.config-btn-secondary {
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-main);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.config-btn-primary {
+  background: linear-gradient(135deg, rgba(255, 51, 102, 0.95), rgba(0, 229, 255, 0.28));
+  color: #fff;
+  box-shadow: 0 12px 28px rgba(255, 51, 102, 0.18);
 }
 
 .report-section {
@@ -731,6 +909,188 @@ body {
   gap: 12px;
 }
 
+/* ── Startup Screen ─────────────────────────────────── */
+.startup-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at top, rgba(0, 229, 255, 0.12), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(255, 51, 102, 0.14), transparent 30%),
+    linear-gradient(135deg, rgba(10, 10, 16, 0.96), rgba(15, 15, 22, 0.98));
+  z-index: 300;
+}
+
+.startup-panel {
+  width: min(100%, 540px);
+  background: rgba(25, 25, 35, 0.82);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  padding: 32px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+}
+
+.startup-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 229, 255, 0.28);
+  background: rgba(0, 229, 255, 0.08);
+  color: var(--accent-secondary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+
+.startup-panel h2 {
+  font-size: 32px;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  margin-bottom: 12px;
+}
+
+.startup-panel > p {
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.startup-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.startup-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  cursor: pointer;
+  text-align: left;
+  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.05);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.startup-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.24);
+}
+
+.startup-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.startup-button-icon {
+  width: 40px;
+  height: 40px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 40px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.08);
+  font-size: 18px;
+}
+
+.startup-button span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.startup-button strong {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.startup-button small {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.startup-button-primary {
+  border-color: rgba(0, 229, 255, 0.35);
+  background: linear-gradient(135deg, rgba(0, 229, 255, 0.18), rgba(0, 229, 255, 0.08));
+}
+
+.startup-button-primary .startup-button-icon {
+  background: rgba(0, 229, 255, 0.16);
+  color: var(--accent-secondary);
+}
+
+.startup-button-secondary {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.04));
+}
+
+.startup-button-secondary .startup-button-icon {
+  background: rgba(255, 51, 102, 0.12);
+  color: var(--accent-hub);
+}
+
+.startup-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+}
+
+.startup-divider::before,
+.startup-divider::after {
+  content: '';
+  height: 1px;
+  flex: 1;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.loading-text {
+  margin-top: 18px;
+  color: var(--accent-secondary);
+  font-size: 14px;
+}
+
+@media (max-width: 640px) {
+  .startup-panel {
+    padding: 24px;
+    border-radius: 20px;
+  }
+
+  .startup-panel h2 {
+    font-size: 26px;
+  }
+
+  .startup-button {
+    padding: 14px 16px;
+  }
+
+  .startup-button-icon {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+  }
+}
+
 .form-group {
   display: flex;
   flex-direction: column;
@@ -871,6 +1231,25 @@ body {
 
 .results-header .close-btn {
   position: static;
+}
+
+@media (max-width: 720px) {
+  .config-panel {
+    max-width: 100%;
+    padding: 28px 22px;
+  }
+
+  .config-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .config-actions {
+    flex-direction: column;
+  }
+
+  .config-btn {
+    width: 100%;
+  }
 }
 
 .results-tabs {
