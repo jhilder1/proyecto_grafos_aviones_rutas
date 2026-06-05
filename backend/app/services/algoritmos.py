@@ -8,13 +8,7 @@ Contains graph traversal algorithms for route optimization:
 
 class Algoritmos:
 
-    # ──────────────────────────────────────────────────────────────
-    # Dijkstra's Algorithm — Shortest path between two airports
-    # Justification: Dijkstra is applicable because all edge weights
-    # (distance, cost, time) are non-negative. It guarantees the
-    # optimal shortest path in O((V+E) log V) with a priority queue,
-    # or O(V^2) with simple array (used here for clarity).
-    # ──────────────────────────────────────────────────────────────
+  
     @staticmethod
     def dijkstra_simple(grafo, inicio_id, destino_id, criterio="distancia",
                         excluir_secundarios=False, tipos_preferidos=None):
@@ -96,14 +90,7 @@ class Algoritmos:
 
         return dist, pred, path
 
-    # ──────────────────────────────────────────────────────────────
-    # DFS with Backtracking — Maximize destinations visited
-    # Justification: This is a constrained graph exploration problem
-    # (similar to TSP with resource constraints). DFS with backtracking
-    # exhaustively explores all feasible paths, pruning branches that
-    # violate budget or time constraints. This guarantees finding the
-    # optimal solution (most destinations) within the constraints.
-    # ──────────────────────────────────────────────────────────────
+
     @staticmethod
     def maximizar_destinos(grafo, origen_id, limite, tipo_limite,
                            excluir_secundarios=False, tipos_preferidos=None):

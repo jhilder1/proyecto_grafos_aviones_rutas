@@ -7,13 +7,15 @@ import TripSimulator from './components/TripSimulator';
 import AirportStayPanel from './components/AirportStayPanel';
 import LegSelector from './components/LegSelector';
 import FinalReport from './components/FinalReport';
+import StartupScreen from './components/StartupScreen';
+import ConfigPanel from './components/ConfigPanel';
 import { fetchNetworkData, toggleRouteStatus, planBestRoute, planMaximizeDestinations } from './services/api';
 import './index.css';
 
 function App() {
   const [graphData, setGraphData] = useState({ nodes: [], links: [] });
   const [selectedAirport, setSelectedAirport] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [appState, setAppState] = useState('startup'); // 'startup', 'loading', 'ready'
   const [planResults, setPlanResults] = useState(null);
   const [highlightedRoute, setHighlightedRoute] = useState([]);
   
@@ -28,6 +30,8 @@ function App() {
   
   // Phase Management: 'flying' | 'at_airport' | 'selecting_leg' | 'finished'
   const [tripPhase, setTripPhase] = useState('none');
+  
+  const [showConfig, setShowConfig] = useState(false);
 
   // Dynamic Trip Balances
   const [tripStats, setTripStats] = useState({
@@ -50,14 +54,13 @@ function App() {
   });
 
   const loadData = useCallback(async () => {
+    setAppState('loading');
     const data = await fetchNetworkData();
     setGraphData(data);
-    setLoading(false);
+    setAppState('ready');
   }, []);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  // Removed auto-loading useEffect so StartupScreen can handle it.
 
   const handleClearResults = () => {
     setPlanResults(null);
@@ -80,6 +83,7 @@ function App() {
     setTripStats({
       budget: initialBudget,
       initialBudget: initialBudget,
+      initialTime: initialTime,
       timeRemaining: initialTime,
       distanciaTotal: 0,
       distanciaSubsidiada: 0,
@@ -217,15 +221,30 @@ function App() {
 
   return (
     <div className="app-container">
-      <header className="glass-header">
-        <h1>SkyRoute <span>Planner</span></h1>
-        <p className="subtitle">Network Optimization Graph</p>
-      </header>
+      {appState === 'startup' && (
+        <StartupScreen onStart={() => loadData()} />
+      )}
 
-      {loading ? (
-        <div className="loading">Loading network data...</div>
-      ) : (
+      {appState === 'loading' && (
+        <div className="loading">Cargando red de vuelos...</div>
+      )}
+
+      {appState === 'ready' && (
         <>
+          <header className="glass-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <div>
+              <h1>SkyRoute <span>Planner</span></h1>
+              <p className="subtitle">Network Optimization Graph</p>
+            </div>
+            <button 
+              className="btn-secondary" 
+              onClick={() => setShowConfig(true)}
+              style={{ fontSize: '14px', padding: '8px 16px', display: 'flex', alignItems: 'center', gap: '8px' }}
+            >
+              ⚙️ Configuración
+            </button>
+          </header>
+
           <NetworkGraph
             data={graphData}
             onNodeClick={(node) => setSelectedAirport(node)}
@@ -243,8 +262,17 @@ function App() {
             }}
             onHighlightRoute={(route) => setHighlightedRoute(route)}
           />
-        </>
-      )}
+
+          {showConfig && (
+            <ConfigPanel 
+              config={graphData.config} 
+              onClose={() => setShowConfig(false)} 
+              onSaveComplete={() => {
+                setShowConfig(false);
+                loadData();
+              }} 
+            />
+          )}
 
       {selectedAirport && (
         <AirportSidebar airport={selectedAirport} onClose={() => setSelectedAirport(null)} />
@@ -295,7 +323,9 @@ function App() {
         <FinalReport 
           history={history} 
           initialBudget={tripStats.initialBudget} 
+          initialTime={tripStats.initialTime}
           finalStats={tripStats}
+          airports={graphData.nodes}
           onClose={handleClearResults} 
         />
       )}
@@ -304,6 +334,8 @@ function App() {
         <button className="stop-sim-btn" onClick={handleStopTrip}>
           Detener Viaje
         </button>
+      )}
+      </>
       )}
     </div>
   );

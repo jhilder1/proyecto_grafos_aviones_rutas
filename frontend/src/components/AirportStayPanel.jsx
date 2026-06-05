@@ -34,11 +34,17 @@ const AirportStayPanel = ({ airportId, airports, stats, onComplete }) => {
     };
 
     const handleConfirm = () => {
+        const mandatoryActivities = [];
+        if (needsMeal) mandatoryActivities.push({ nombre: "Alimentación", tipo: "Obligatoria", duracionMin: 0, costoUSD: mealCost });
+        if (needsSleep) mandatoryActivities.push({ nombre: "Alojamiento", tipo: "Obligatoria", duracionMin: 480, costoUSD: sleepCost });
+
+        const mappedOptional = selectedActivities.map(a => ({ ...a, tipo: "Opcional" }));
+
         onComplete({
             totalCost,
             totalEarnings: jobEarnings,
             totalTime,
-            activities: selectedActivities,
+            activities: [...mandatoryActivities, ...mappedOptional],
             jobs: selectedJob ? [{ ...selectedJob, hours: jobHours, earnings: jobEarnings }] : [],
             resetMeal: needsMeal,
             resetSleep: needsSleep

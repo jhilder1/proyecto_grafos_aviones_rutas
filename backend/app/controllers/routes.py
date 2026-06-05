@@ -1,10 +1,11 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 from app.services.data_loader import DataLoader
 from app.services.itinerary_service import construir_itinerario
 from app.services.algoritmos import Algoritmos
 import os
+import json
 
 router = APIRouter()
 
@@ -41,6 +42,10 @@ class RouteToggleRequest(BaseModel):
     activa: bool
 
 
+class ConfigUpdateRequest(BaseModel):
+    aeronaves: Dict[str, Dict[str, float]]
+
+
 # ── Endpoints ───────────────────────────────────────────────────
 
 @router.get("/network")
@@ -53,6 +58,46 @@ async def get_network():
     except Exception as e:
         print("ERROR EN /network:", e)
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/network/upload")
+async def upload_network(data: Dict[str, Any]):
+    """Receives a full JSON network structure, saves it, and reloads."""
+    global grafo_global
+    try:
+        with open(JSON_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+        grafo_global = DataLoader.load_graph_from_json(JSON_PATH)
+        return {"message": "Network uploaded and reloaded successfully"}
+    except Exception as e:
+        print("ERROR EN /network/upload:", e)
+        raise HTTPException(status_code=500, detail=f"Error processing network data: {str(e)}")
+
+
+@router.post("/config/update")
+async def update_config(req: ConfigUpdateRequest):
+    """Updates the aircraft configuration in the JSON file and memory."""
+    global grafo_global
+    try:
+        if not os.path.exists(JSON_PATH):
+            raise FileNotFoundError("network.json not found")
+        
+        with open(JSON_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        
+        if "configuracionGlobal" not in data:
+            data["configuracionGlobal"] = {}
+            
+        data["configuracionGlobal"]["aeronaves"] = req.aeronaves
+        
+        with open(JSON_PATH, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+            
+        grafo_global = DataLoader.load_graph_from_json(JSON_PATH)
+        return {"message": "Configuration updated successfully"}
+    except Exception as e:
+        print("ERROR EN /config/update:", e)
+        raise HTTPException(status_code=500, detail=f"Error updating configuration: {str(e)}")
 
 
 @router.get("/airport/{iata}")

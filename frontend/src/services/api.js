@@ -73,3 +73,33 @@ export const toggleRouteStatus = async (origen, destino, activa) => {
         throw error;
     }
 };
+
+export const uploadNetworkData = async (jsonData) => {
+    try {
+        const response = await fetch(`${API_URL}/network/upload`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(jsonData)
+        });
+        if (!response.ok) throw new Error('Error uploading network data');
+        return await response.json();
+    } catch (error) {
+        console.error("Error uploading network data:", error);
+        throw error;
+    }
+};
+
+export const updateConfig = async (configData) => {
+    try {
+        const response = await fetch(`${API_URL}/config/update`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ aeronaves: configData })
+        });
+        if (!response.ok) throw new Error('Error updating configuration');
+        return await response.json();
+    } catch (error) {
+        console.error("Error updating configuration:", error);
+        throw error;
+    }
+};
