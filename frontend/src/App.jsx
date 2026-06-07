@@ -61,11 +61,11 @@ function App() {
   // Visited airports for free exploration
   const [visitedAirports, setVisitedAirports] = useState([]);
 
-  const loadData = useCallback(async () => {
-    setAppState('loading');
+  const loadData = useCallback(async (quiet = false) => {
+    if (!quiet) setAppState('loading');
     const data = await fetchNetworkData();
     setGraphData(data);
-    setAppState('ready');
+    if (!quiet) setAppState('ready');
   }, []);
 
   // Removed auto-loading useEffect so StartupScreen can handle it.
@@ -81,38 +81,41 @@ function App() {
   };
 
   // ── Guided Trip (R2.2) ─────────────────────────────────────
-  const handleStartTrip = (itinerary, budget, timeHours) => {
+  const handleStartTrip = (itinerary, budget, timeHours, isRecalculation = false) => {
     setActiveItinerary(itinerary);
     setCurrentLegIndex(0);
     setTripPhase('at_airport');
     setIsSimulating(true);
     setTripMode('guided');
     
-    const startAirport = itinerary[0].origen;
-    const initialBudget = budget || 5000;
-    const initialTime = (timeHours || 72) * 60;
+    if (!isRecalculation) {
+      const startAirport = itinerary[0].origen;
+      const initialBudget = budget || 5000;
+      const initialTime = (timeHours || 72) * 60;
 
-    setTripStats({
-      budget: initialBudget,
-      initialBudget: initialBudget,
-      initialTime: initialTime,
-      timeRemaining: initialTime,
-      distanciaTotal: 0,
-      distanciaSubsidiada: 0,
-      hoursSinceMeal: 0,
-      hoursSinceSleep: 0,
-      currentAirportId: startAirport
-    });
+      setTripStats({
+        budget: initialBudget,
+        initialBudget: initialBudget,
+        initialTime: initialTime,
+        timeRemaining: initialTime,
+        distanciaTotal: 0,
+        distanciaSubsidiada: 0,
+        hoursSinceMeal: 0,
+        hoursSinceSleep: 0,
+        currentAirportId: startAirport,
+        estanciaMinima: 0
+      });
 
-    setHistory({
-      destinations: [],
-      flights: [],
-      activities: [],
-      jobs: []
-    });
+      setHistory({
+        destinations: [],
+        flights: [],
+        activities: [],
+        jobs: []
+      });
 
-    setVisitedAirports([startAirport]);
-    setHighlightedRoute([startAirport]);
+      setVisitedAirports([startAirport]);
+      setHighlightedRoute([startAirport]);
+    }
   };
 
   // ── Free Exploration Trip (R2.3) ───────────────────────────
@@ -155,12 +158,33 @@ function App() {
     const newStatus = link.activa === false;
     try {
       await toggleRouteStatus(sourceId, targetId, newStatus);
-      await loadData();
-      if (activeLeg && activeLeg.origen === sourceId && activeLeg.destino === targetId && !newStatus) {
-        setInterruptedLeg(activeLeg);
+      await loadData(true);
+      if (!newStatus) {
+        if (activeLeg && activeLeg.origen === sourceId && activeLeg.destino === targetId) {
+          setInterruptedLeg(activeLeg);
+        } else if (activeItinerary && currentLegIndex < activeItinerary.length) {
+          const futureLegs = activeItinerary.slice(currentLegIndex);
+          const isAffected = futureLegs.some(leg => leg.origen === sourceId && leg.destino === targetId);
+          if (isAffected) {
+            alert(`ATENCIÓN: La ruta ${sourceId} → ${targetId} ha sido bloqueada. Tu itinerario futuro se ve afectado. Recalculando ruta...`);
+            handleInterruptionComplete(tripStats.currentAirportId);
+          }
+        }
       }
     } catch (err) {
       alert("Error al modificar estado de la ruta");
+    }
+  };
+
+  const handleExplicitInterruption = async () => {
+    if (!activeLeg) return;
+    try {
+      // Bloquear la ruta actual en el backend
+      await toggleRouteStatus(activeLeg.origen, activeLeg.destino, false);
+      await loadData(true);
+      setInterruptedLeg(activeLeg);
+    } catch (err) {
+      alert("Error al interrumpir la ruta actual");
     }
   };
 
@@ -210,7 +234,8 @@ function App() {
       aeronave: destData.aircraft,
       distancia: destData.distance,
       costo: destData.cost,
-      tiempo: destData.time
+      tiempo: destData.time,
+      estanciaMinima: destData.estanciaMinima || 0
     });
     
     setTripPhase('flying');
@@ -224,7 +249,8 @@ function App() {
       aeronave: legData.aircraft,
       distancia: legData.distance,
       costo: legData.cost,
-      tiempo: legData.time
+      tiempo: legData.time,
+      estanciaMinima: legData.estanciaMinima || 0
     });
     
     setTripPhase('flying');
@@ -235,6 +261,7 @@ function App() {
     setTripStats(prev => {
       const newHoursSinceMeal = prev.hoursSinceMeal + (flightData.tiempo / 60);
       const originNode = graphData.nodes.find(n => n.id === flightData.origen);
+      const mealInterval = graphData.config?.configuracionGlobal?.intervaloAlimentacion || 8;
       
       return {
         ...prev,
@@ -245,8 +272,9 @@ function App() {
         hoursSinceMeal: newHoursSinceMeal,
         hoursSinceSleep: prev.hoursSinceSleep + (flightData.tiempo / 60),
         currentAirportId: flightData.destino,
-        mealTriggeredDuringFlight: prev.hoursSinceMeal < 8 && newHoursSinceMeal >= 8,
-        lastAirportMealCost: originNode ? originNode.costoAlimentacion : 0
+        mealTriggeredDuringFlight: prev.hoursSinceMeal < mealInterval && newHoursSinceMeal >= mealInterval,
+        lastAirportMealCost: originNode ? originNode.costoAlimentacion : 0,
+        estanciaMinima: flightData.estanciaMinima || 0
       };
     });
 
@@ -283,12 +311,15 @@ function App() {
     if (planningParams) {
       try {
         let newResults;
+        const remainingTimeHours = tripStats.timeRemaining / 60;
+        const newArgs = { ...planningParams.args, origen: returnAirport, presupuesto: tripStats.budget, tiempoDisponible: remainingTimeHours };
+        
         if (planningParams.type === 'maximize') {
-          newResults = await planMaximizeDestinations({ ...planningParams.args, origen: returnAirport });
-          setPlanResults({ type: 'maximize', data: newResults, args: planningParams.args });
+          newResults = await planMaximizeDestinations(newArgs);
+          setPlanResults({ type: 'maximize', data: newResults, args: newArgs, isRecalculation: true });
         } else {
-          newResults = await planBestRoute({ ...planningParams.args, origen: returnAirport });
-          setPlanResults({ type: 'route', data: newResults, args: planningParams.args });
+          newResults = await planBestRoute(newArgs);
+          setPlanResults({ type: 'route', data: newResults, args: newArgs, isRecalculation: true });
         }
         setIsSimulating(false);
         setActiveItinerary(null);
@@ -383,7 +414,7 @@ function App() {
           airports={graphData.nodes}
           onClose={handleClearResults}
           onHighlightRoute={(route) => setHighlightedRoute(route)}
-          onStartTrip={(itinerary) => handleStartTrip(itinerary, planningParams.args.presupuesto, planningParams.args.tiempoDisponible)}
+          onStartTrip={(itinerary) => handleStartTrip(itinerary, planningParams.args.presupuesto, planningParams.args.tiempoDisponible, planResults.isRecalculation)}
         />
       )}
 
@@ -392,6 +423,7 @@ function App() {
         <AirportStayPanel
           airportId={tripStats.currentAirportId}
           airports={graphData.nodes}
+          config={graphData.config}
           stats={tripStats}
           onComplete={handleStayComplete}
         />
@@ -429,6 +461,7 @@ function App() {
           onProgressUpdate={(p) => setTravelerProgress(p)}
           onLegComplete={() => handleFlightComplete(activeLeg)}
           onInterruption={handleInterruptionComplete}
+          onRequestInterruption={handleExplicitInterruption}
           isInterrupted={!!interruptedLeg}
         />
       )}

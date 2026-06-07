@@ -141,8 +141,9 @@ async def get_airport_neighbors(iata: str):
             costo_km = config_aeronaves[tipo]["costoKm"]
             tiempo_km = config_aeronaves[tipo]["tiempoKm"]
             
-            # If costoBase is 0, it's subsidized
-            costo_calc = 0 if arista.costoBase == 0 else arista.costoBase + (arista.distanciaKm * costo_km)
+            # costoBase == 0 → ruta subsidiada (gratuita)
+            # costoBase != 0 → costo = distancia × costo_por_km
+            costo_calc = 0 if arista.costoBase == 0 else arista.distanciaKm * costo_km
             
             opciones_aeronave.append({
                 "tipo": tipo,

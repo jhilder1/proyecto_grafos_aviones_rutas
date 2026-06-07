@@ -15,18 +15,15 @@ const LegSelector = ({ originId, destId, airports, edges, config, stats, onSelec
 
     const options = edge.aeronaves.map(type => {
         const conf = aircraftConfig[type] || { costoKm: 0, tiempoKm: 0 };
-        const cost = edge.distanciaKm * conf.costoKm;
+        // costoBase === 0 → ruta subsidiada (gratuita)
+        const cost = edge.costoBase === 0 ? 0 : edge.distanciaKm * conf.costoKm;
         const time = edge.distanciaKm * conf.tiempoKm;
-        const isSubsidized = edge.costoBase === 0 && cost === 0;
+        const isSubsidized = edge.costoBase === 0;
         
-        // Check subsidized rule: max 20% of total distance can be subsidized
-        // In guided mode, we can estimate the total trip distance
-        // We approximate it by using stats.distanciaTotal + edge.distanciaKm as a simple check for now,
-        // but a proper fix would require knowing the total planned itinerary distance.
-        // For now, we will use initialBudget as a rough proxy or just allow it if it doesn't exceed 20% of CURRENT total + leg
-        const totalDistAfter = stats.distanciaTotal + edge.distanciaKm;
-        const maxSubsidized = totalDistAfter * 0.2;
-        const exceedsSubsidized = isSubsidized && (stats.distanciaSubsidiada + edge.distanciaKm > maxSubsidized);
+        // Regla del 20%: máximo 20% de la distancia TOTAL puede ser subsidiada
+        const baseDistance = Math.max(stats.distanciaTotal + edge.distanciaKm, 2000);
+        const maxSubsidized = baseDistance * 0.2;
+        const exceedsSubsidized = isSubsidized && stats.distanciaSubsidiada > 0 && (stats.distanciaSubsidiada + edge.distanciaKm > maxSubsidized);
 
         return {
             type,
@@ -36,7 +33,8 @@ const LegSelector = ({ originId, destId, airports, edges, config, stats, onSelec
             isSubsidized,
             exceedsSubsidized,
             canAfford: stats.budget >= cost,
-            canTime: stats.timeRemaining >= time
+            canTime: stats.timeRemaining >= time,
+            estanciaMinima: edge.estanciaMinima || 0
         };
     });
 
@@ -75,7 +73,8 @@ const LegSelector = ({ originId, destId, airports, edges, config, stats, onSelec
                     cost: selectedAircraft.cost,
                     time: selectedAircraft.time,
                     distance: selectedAircraft.distance,
-                    isSubsidized: selectedAircraft.isSubsidized
+                    isSubsidized: selectedAircraft.isSubsidized,
+                    estanciaMinima: selectedAircraft.estanciaMinima
                 })}
             >
                 Confirmar y Despegar

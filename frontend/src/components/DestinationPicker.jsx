@@ -31,11 +31,12 @@ const DestinationPicker = ({ currentAirportId, airports, stats, config, visitedA
     };
 
     const handleSelectAircraft = (opt, dest) => {
-        // Check subsidized rule: max 20% of total distance can be subsidized
-        const isSubsidized = dest.costoBase === 0 && opt.costo === 0;
-        const totalDistAfter = stats.distanciaTotal + dest.distanciaKm;
-        const maxSubsidized = totalDistAfter * 0.2;
-        const exceedsSubsidized = isSubsidized && (stats.distanciaSubsidiada + dest.distanciaKm > maxSubsidized);
+        // Regla del 20%: máximo 20% de la distancia TOTAL del viaje puede ser subsidiada
+        const isSubsidized = dest.costoBase === 0;
+        // Permitir el primer vuelo subsidiado sin importar la distancia, luego aplicar la regla estricta
+        const baseDistance = Math.max(stats.distanciaTotal + dest.distanciaKm, 2000);
+        const maxSubsidized = baseDistance * 0.2;
+        const exceedsSubsidized = isSubsidized && stats.distanciaSubsidiada > 0 && (stats.distanciaSubsidiada + dest.distanciaKm > maxSubsidized);
 
         if (exceedsSubsidized) return;
         if (stats.budget < opt.costo) return;
@@ -48,19 +49,21 @@ const DestinationPicker = ({ currentAirportId, airports, stats, config, visitedA
             exceedsSubsidized,
             canAfford: stats.budget >= opt.costo,
             canTime: stats.timeRemaining >= opt.tiempo,
-            destId: dest.destino_id
+            destId: dest.destino_id,
+            estanciaMinima: dest.estanciaMinima || 0
         });
     };
 
     const handleConfirm = () => {
         if (!selectedDest || !selectedAircraft) return;
         onSelectDestination({
-            destino: selectedAircraft.destId,
+            destino: selectedDest.destino_id,
             aircraft: selectedAircraft.tipo,
             cost: selectedAircraft.costo,
             time: selectedAircraft.tiempo,
             distance: selectedAircraft.distance,
-            isSubsidized: selectedAircraft.isSubsidized
+            isSubsidized: selectedAircraft.isSubsidized,
+            estanciaMinima: selectedAircraft.estanciaMinima
         });
     };
 
@@ -107,6 +110,51 @@ const DestinationPicker = ({ currentAirportId, airports, stats, config, visitedA
                 <>
                     <div className="panel-section">
                         <label>Elige tu próximo destino ({availableNeighbors.length} disponibles):</label>
+                        
+                        {/* 🌟 Sugerencia del Sistema (R3) */}
+                        {(() => {
+                            const unvisited = availableNeighbors.filter(n => !visitedAirports.includes(n.destino_id));
+                            const candidates = unvisited.length > 0 ? unvisited : availableNeighbors;
+                            
+                            let bestDest = null;
+                            let bestScore = Infinity;
+                            
+                            candidates.forEach(dest => {
+                                const cheapestOpt = dest.opciones_aeronave.reduce((min, opt) => opt.costo < min ? opt.costo : min, Infinity);
+                                if (stats.budget >= cheapestOpt) {
+                                    const destNode = airports.find(a => a.id === dest.destino_id);
+                                    const estStayCost = destNode ? (destNode.costoAlimentacion + destNode.costoAlojamiento) : 0;
+                                    const totalEstCost = cheapestOpt + estStayCost;
+                                    
+                                    // Bonificación si es ruta subsidiada y no rompe regla
+                                    const isSubsidized = dest.costoBase === 0;
+                                    const baseDist = Math.max(stats.distanciaTotal + dest.distanciaKm, 2000);
+                                    const breaksRule = isSubsidized && stats.distanciaSubsidiada > 0 && (stats.distanciaSubsidiada + dest.distanciaKm > baseDist * 0.2);
+                                    
+                                    let score = totalEstCost;
+                                    if (isSubsidized && !breaksRule) score -= 500; // Gran bonificación por subsidiada
+                                    
+                                    if (score < bestScore) {
+                                        bestScore = score;
+                                        bestDest = dest;
+                                    }
+                                }
+                            });
+                            
+                            if (bestDest) {
+                                return (
+                                    <div className="suggestion-box" style={{ background: 'rgba(0, 229, 255, 0.1)', border: '1px dashed var(--accent-secondary)', padding: '10px', borderRadius: '10px', marginBottom: '15px' }}>
+                                        <div style={{ fontSize: '11px', color: 'var(--accent-secondary)', fontWeight: 'bold', marginBottom: '4px' }}>✨ SUGERENCIA DEL SISTEMA (R3)</div>
+                                        <div style={{ fontSize: '13px' }}>
+                                            Te recomendamos volar a <b>{bestDest.nombre} ({bestDest.destino_id})</b>. 
+                                            Es la opción más óptima para maximizar destinos considerando el costo del vuelo y la estancia.
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })()}
+
                         <div className="destinations-list">
                             {availableNeighbors.map((dest, idx) => {
                                 const cheapest = dest.opciones_aeronave.reduce((min, opt) => opt.costo < min ? opt.costo : min, Infinity);
@@ -150,9 +198,9 @@ const DestinationPicker = ({ currentAirportId, airports, stats, config, visitedA
                             <label>Selecciona aeronave para volar a {selectedDest.destino_id}:</label>
                             <div className="aircraft-options">
                                 {selectedDest.opciones_aeronave.map((opt, idx) => {
-                                    const isSubsidized = selectedDest.costoBase === 0 && opt.costo === 0;
-                                    const totalDistAfter = stats.distanciaTotal + selectedDest.distanciaKm;
-                                    const maxSubsidized = totalDistAfter * 0.2;
+                                    const isSubsidized = selectedDest.costoBase === 0;
+                                    const baseDistance = Math.max(stats.distanciaTotal + selectedDest.distanciaKm, 1000);
+                                    const maxSubsidized = baseDistance * 0.2;
                                     const exceedsSubsidized = isSubsidized && (stats.distanciaSubsidiada + selectedDest.distanciaKm > maxSubsidized);
                                     const canAfford = stats.budget >= opt.costo;
                                     const canTime = stats.timeRemaining >= opt.tiempo;

@@ -26,7 +26,12 @@
             "pais": "Colombia",
             "zonaHoraria": "GMT-5",
             "esHub": true,
-            "aerolineas": ["Avianca", "LATAM", "Copa Airlines", "Viva Air"],
+            "aerolineas": [
+                "Avianca",
+                "LATAM",
+                "Copa Airlines",
+                "Viva Air"
+            ],
             "costoAlojamiento": 60,
             "costoAlimentacion": 15,
             "actividades": [
@@ -58,7 +63,11 @@
             "pais": "Colombia",
             "zonaHoraria": "GMT-5",
             "esHub": false,
-            "aerolineas": ["Avianca", "Viva Air", "JetSMART"],
+            "aerolineas": [
+                "Avianca",
+                "Viva Air",
+                "JetSMART"
+            ],
             "costoAlojamiento": 50,
             "costoAlimentacion": 12,
             "actividades": [
@@ -84,7 +93,11 @@
             "pais": "Colombia",
             "zonaHoraria": "GMT-5",
             "esHub": false,
-            "aerolineas": ["Avianca", "LATAM", "Satena"],
+            "aerolineas": [
+                "Avianca",
+                "LATAM",
+                "Satena"
+            ],
             "costoAlojamiento": 45,
             "costoAlimentacion": 11,
             "actividades": [
@@ -110,7 +123,11 @@
             "pais": "Colombia",
             "zonaHoraria": "GMT-5",
             "esHub": false,
-            "aerolineas": ["Avianca", "LATAM", "Copa Airlines"],
+            "aerolineas": [
+                "Avianca",
+                "LATAM",
+                "Copa Airlines"
+            ],
             "costoAlojamiento": 70,
             "costoAlimentacion": 18,
             "actividades": [
@@ -142,7 +159,12 @@
             "pais": "Peru",
             "zonaHoraria": "GMT-5",
             "esHub": true,
-            "aerolineas": ["LATAM", "Avianca", "Sky Airline", "JetSMART"],
+            "aerolineas": [
+                "LATAM",
+                "Avianca",
+                "Sky Airline",
+                "JetSMART"
+            ],
             "costoAlojamiento": 55,
             "costoAlimentacion": 20,
             "actividades": [
@@ -168,7 +190,12 @@
             "pais": "Chile",
             "zonaHoraria": "GMT-4",
             "esHub": true,
-            "aerolineas": ["LATAM", "Sky Airline", "JetSMART", "Aeromexico"],
+            "aerolineas": [
+                "LATAM",
+                "Sky Airline",
+                "JetSMART",
+                "Aeromexico"
+            ],
             "costoAlojamiento": 65,
             "costoAlimentacion": 22,
             "actividades": [
@@ -194,7 +221,12 @@
             "pais": "Brasil",
             "zonaHoraria": "GMT-3",
             "esHub": true,
-            "aerolineas": ["LATAM", "GOL", "Azul", "Avianca"],
+            "aerolineas": [
+                "LATAM",
+                "GOL",
+                "Azul",
+                "Avianca"
+            ],
             "costoAlojamiento": 75,
             "costoAlimentacion": 25,
             "actividades": [
@@ -226,7 +258,12 @@
             "pais": "Argentina",
             "zonaHoraria": "GMT-3",
             "esHub": true,
-            "aerolineas": ["Aerolineas Argentinas", "LATAM", "Flybondi", "JetSMART"],
+            "aerolineas": [
+                "Aerolineas Argentinas",
+                "LATAM",
+                "Flybondi",
+                "JetSMART"
+            ],
             "costoAlojamiento": 50,
             "costoAlimentacion": 18,
             "actividades": [
@@ -258,7 +295,11 @@
             "pais": "Venezuela",
             "zonaHoraria": "GMT-4",
             "esHub": false,
-            "aerolineas": ["Conviasa", "Avior Airlines", "Copa Airlines"],
+            "aerolineas": [
+                "Conviasa",
+                "Avior Airlines",
+                "Copa Airlines"
+            ],
             "costoAlojamiento": 35,
             "costoAlimentacion": 10,
             "actividades": [
@@ -284,7 +325,11 @@
             "pais": "Ecuador",
             "zonaHoraria": "GMT-5",
             "esHub": false,
-            "aerolineas": ["TAME", "LATAM", "Avianca"],
+            "aerolineas": [
+                "TAME",
+                "LATAM",
+                "Avianca"
+            ],
             "costoAlojamiento": 40,
             "costoAlimentacion": 12,
             "actividades": [
@@ -310,7 +355,12 @@
             "pais": "Panama",
             "zonaHoraria": "GMT-5",
             "esHub": true,
-            "aerolineas": ["Copa Airlines", "Avianca", "LATAM", "Wingo"],
+            "aerolineas": [
+                "Copa Airlines",
+                "Avianca",
+                "LATAM",
+                "Wingo"
+            ],
             "costoAlojamiento": 80,
             "costoAlimentacion": 20,
             "actividades": [
@@ -336,7 +386,12 @@
             "pais": "Mexico",
             "zonaHoraria": "GMT-6",
             "esHub": true,
-            "aerolineas": ["Aeromexico", "Volaris", "VivaAerobus", "Interjet"],
+            "aerolineas": [
+                "Aeromexico",
+                "Volaris",
+                "VivaAerobus",
+                "Interjet"
+            ],
             "costoAlojamiento": 70,
             "costoAlimentacion": 16,
             "actividades": [
@@ -368,7 +423,11 @@
             "pais": "Mexico",
             "zonaHoraria": "GMT-5",
             "esHub": false,
-            "aerolineas": ["Volaris", "VivaAerobus", "Aeromexico"],
+            "aerolineas": [
+                "Volaris",
+                "VivaAerobus",
+                "Aeromexico"
+            ],
             "costoAlojamiento": 90,
             "costoAlimentacion": 22,
             "actividades": [
@@ -400,7 +459,11 @@
             "pais": "Guatemala",
             "zonaHoraria": "GMT-6",
             "esHub": false,
-            "aerolineas": ["Avianca", "Copa Airlines", "TAG Airlines"],
+            "aerolineas": [
+                "Avianca",
+                "Copa Airlines",
+                "TAG Airlines"
+            ],
             "costoAlojamiento": 35,
             "costoAlimentacion": 10,
             "actividades": [
@@ -426,7 +489,11 @@
             "pais": "Costa Rica",
             "zonaHoraria": "GMT-6",
             "esHub": false,
-            "aerolineas": ["Copa Airlines", "Avianca", "Volaris Costa Rica"],
+            "aerolineas": [
+                "Copa Airlines",
+                "Avianca",
+                "Volaris Costa Rica"
+            ],
             "costoAlojamiento": 55,
             "costoAlimentacion": 15,
             "actividades": [
@@ -477,7 +544,7 @@
                 "Avion Regional",
                 "Helice"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 60
         },
         {
@@ -487,7 +554,7 @@
             "aeronaves": [
                 "Avion Regional"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 60
         },
         {
@@ -498,7 +565,7 @@
                 "Avion Comercial",
                 "Avion Regional"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 90
         },
         {
@@ -508,7 +575,7 @@
             "aeronaves": [
                 "Avion Comercial"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 90
         },
         {
@@ -518,7 +585,7 @@
             "aeronaves": [
                 "Avion Comercial"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 120
         },
         {
@@ -528,7 +595,7 @@
             "aeronaves": [
                 "Avion Comercial"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 120
         },
         {
@@ -539,7 +606,7 @@
                 "Avion Comercial",
                 "Avion Regional"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 90
         },
         {
@@ -549,7 +616,7 @@
             "aeronaves": [
                 "Avion Comercial"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 90
         },
         {
@@ -560,7 +627,7 @@
                 "Avion Comercial",
                 "Helice"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 90
         },
         {
@@ -570,7 +637,7 @@
             "aeronaves": [
                 "Avion Comercial"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 90
         },
         {
@@ -580,7 +647,7 @@
             "aeronaves": [
                 "Avion Comercial"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 90
         },
         {
@@ -590,7 +657,7 @@
             "aeronaves": [
                 "Avion Comercial"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 90
         },
         {
@@ -600,7 +667,7 @@
             "aeronaves": [
                 "Avion Comercial"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 120
         },
         {
@@ -611,7 +678,7 @@
                 "Avion Regional",
                 "Helice"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 60
         },
         {
@@ -621,7 +688,7 @@
             "aeronaves": [
                 "Avion Regional"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 60
         },
         {
@@ -631,7 +698,7 @@
             "aeronaves": [
                 "Helice"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 60
         },
         {
@@ -641,7 +708,7 @@
             "aeronaves": [
                 "Helice"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 60
         },
         {
@@ -651,7 +718,7 @@
             "aeronaves": [
                 "Avion Comercial"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 120
         },
         {
@@ -661,7 +728,7 @@
             "aeronaves": [
                 "Avion Comercial"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 120
         },
         {
@@ -671,7 +738,7 @@
             "aeronaves": [
                 "Avion Comercial"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 120
         },
         {
@@ -682,7 +749,7 @@
                 "Avion Comercial",
                 "Avion Regional"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 90
         },
         {
@@ -693,7 +760,7 @@
                 "Avion Comercial",
                 "Avion Regional"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 90
         },
         {
@@ -704,7 +771,7 @@
                 "Avion Comercial",
                 "Avion Regional"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 90
         },
         {
@@ -715,7 +782,7 @@
                 "Avion Comercial",
                 "Avion Regional"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 90
         },
         {
@@ -725,7 +792,7 @@
             "aeronaves": [
                 "Avion Comercial"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 120
         },
         {
@@ -735,7 +802,7 @@
             "aeronaves": [
                 "Avion Comercial"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 120
         },
         {
@@ -746,7 +813,7 @@
                 "Avion Comercial",
                 "Avion Regional"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 120
         },
         {
@@ -757,7 +824,7 @@
                 "Avion Comercial",
                 "Avion Regional"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 120
         },
         {
@@ -767,7 +834,7 @@
             "aeronaves": [
                 "Avion Comercial"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 120
         },
         {
@@ -778,7 +845,7 @@
                 "Avion Comercial",
                 "Avion Regional"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 90
         },
         {
@@ -788,7 +855,7 @@
             "aeronaves": [
                 "Avion Regional"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 90
         },
         {
@@ -798,7 +865,7 @@
             "aeronaves": [
                 "Avion Comercial"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 120
         },
         {
@@ -808,7 +875,7 @@
             "aeronaves": [
                 "Avion Comercial"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 120
         },
         {
@@ -819,7 +886,7 @@
                 "Avion Regional",
                 "Helice"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 60
         },
         {
@@ -830,7 +897,7 @@
                 "Avion Regional",
                 "Helice"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 60
         },
         {
@@ -841,7 +908,7 @@
                 "Avion Comercial",
                 "Avion Regional"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 90
         },
         {
@@ -852,7 +919,7 @@
                 "Avion Comercial",
                 "Avion Regional"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 90
         },
         {
@@ -863,7 +930,7 @@
                 "Avion Comercial",
                 "Helice"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 90
         },
         {
@@ -873,7 +940,7 @@
             "aeronaves": [
                 "Avion Regional"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 90
         },
         {
@@ -894,7 +961,7 @@
             "aeronaves": [
                 "Avion Regional"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 60
         },
         {
@@ -904,7 +971,7 @@
             "aeronaves": [
                 "Avion Comercial"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 120
         },
         {
@@ -915,7 +982,7 @@
                 "Avion Regional",
                 "Helice"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 60
         },
         {
@@ -925,7 +992,7 @@
             "aeronaves": [
                 "Avion Comercial"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 120
         },
         {
@@ -945,7 +1012,7 @@
             "aeronaves": [
                 "Helice"
             ],
-            "costoBase": 0,
+            "costoBase": 1,
             "estanciaMinima": 60
         }
     ]

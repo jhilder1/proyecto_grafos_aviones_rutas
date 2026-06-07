@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 
-const TripSimulator = ({ itinerary, onProgressUpdate, onLegComplete, onInterruption, isInterrupted, currentAirport }) => {
+const TripSimulator = ({ itinerary, onProgressUpdate, onLegComplete, onInterruption, onRequestInterruption, isInterrupted, currentAirport }) => {
     const [legIndex, setLegIndex] = useState(0);
     const [progress, setProgress] = useState(0);
     const [isReturning, setIsReturning] = useState(false);
@@ -31,6 +31,8 @@ const TripSimulator = ({ itinerary, onProgressUpdate, onLegComplete, onInterrupt
                 if (!isReturning && progress > 0) {
                     setIsReturning(true);
                     setStatus('⚠️ RUTA INTERRUMPIDA: Regresando al origen...');
+                } else if (!isReturning && progress === 0) {
+                    onInterruption(itinerary[legIndex].origen);
                 }
                 return;
             }
@@ -95,6 +97,15 @@ const TripSimulator = ({ itinerary, onProgressUpdate, onLegComplete, onInterrupt
                     <div className="sim-alert">
                         Se ha detectado una interrupción en la red. El protocolo de seguridad exige el retorno inmediato al aeropuerto de origen.
                     </div>
+                )}
+                
+                {!isInterrupted && !isReturning && progress < 90 && onRequestInterruption && (
+                    <button 
+                        onClick={onRequestInterruption}
+                        style={{ marginTop: '15px', width: '100%', padding: '10px', background: 'var(--danger)', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
+                    >
+                        ⚠️ Interrumpir Vuelo
+                    </button>
                 )}
             </div>
         </div>

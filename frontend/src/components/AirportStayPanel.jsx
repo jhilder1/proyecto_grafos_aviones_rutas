@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const AirportStayPanel = ({ airportId, airports, stats, onComplete }) => {
+const AirportStayPanel = ({ airportId, airports, config, stats, onComplete }) => {
     const airport = airports.find(a => a.id === airportId);
     if (!airport) return null;
 
@@ -8,12 +8,17 @@ const AirportStayPanel = ({ airportId, airports, stats, onComplete }) => {
     const [selectedJob, setSelectedJob] = useState(null);
     const [jobHours, setJobHours] = useState(1);
     
+    // Intervalos configurables (fallback a 8 y 20 si no existen)
+    const mealInterval = config?.configuracionGlobal?.intervaloAlimentacion || 8;
+    const sleepInterval = config?.configuracionGlobal?.intervaloAlojamiento || 20;
+    const minBudgetPct = (config?.configuracionGlobal?.presupuestoMinimoPorc || 35) / 100;
+
     // Check obligations — these are MANDATORY per R2.3
-    const needsMeal = stats.hoursSinceMeal >= 8;
-    const needsSleep = stats.hoursSinceSleep >= 20;
+    const needsMeal = stats.hoursSinceMeal >= mealInterval;
+    const needsSleep = stats.hoursSinceSleep >= sleepInterval;
     
-    // Jobs only available if budget < 35% of initial (R2.3)
-    const canWork = stats.budget < (stats.initialBudget * 0.35);
+    // Jobs only available if budget < minBudgetPct of initial (R2.3)
+    const canWork = stats.budget < (stats.initialBudget * minBudgetPct);
 
     // Calculate meal cost (R2.3: if triggered during flight, use departure airport cost)
     const mealCost = needsMeal 
@@ -33,7 +38,7 @@ const AirportStayPanel = ({ airportId, airports, stats, onComplete }) => {
     const mealTime = needsMeal ? 30 : 0;
     const sleepTime = needsSleep ? 480 : 0;
     const mandatoryTime = mealTime + sleepTime;
-    const estanciaMinima = airport.estanciaMinima || 0;
+    const estanciaMinima = stats.estanciaMinima || 0;
     const totalTime = Math.max(estanciaMinima, mandatoryTime + activitiesTime + jobTime);
     const freeTime = Math.max(0, estanciaMinima - (mandatoryTime + activitiesTime + jobTime));
 
@@ -45,9 +50,10 @@ const AirportStayPanel = ({ airportId, airports, stats, onComplete }) => {
         }
     };
 
-    // Check if the traveler can afford mandatory costs
-    const canAffordMandatory = stats.budget >= mandatoryCost;
-    const canAffordTotal = stats.budget >= totalCost;
+    // Check if the traveler can afford costs (including what they just earned from the job)
+    const netBudget = stats.budget + jobEarnings;
+    const canAffordMandatory = netBudget >= mandatoryCost;
+    const canAffordTotal = netBudget >= totalCost;
 
     const handleConfirm = () => {
         const mandatoryActivities = [];
@@ -55,6 +61,16 @@ const AirportStayPanel = ({ airportId, airports, stats, onComplete }) => {
         if (needsSleep) mandatoryActivities.push({ nombre: "Alojamiento", tipo: "Obligatoria", duracionMin: sleepTime, costoUSD: sleepCost, aeropuerto: airportId });
 
         const mappedOptional = selectedActivities.map(a => ({ ...a, tipo: "Opcional", aeropuerto: airportId }));
+        
+        if (freeTime > 0) {
+            mappedOptional.push({
+                nombre: "Tiempo Libre",
+                tipo: "Opcional",
+                duracionMin: freeTime,
+                costoUSD: 0,
+                aeropuerto: airportId
+            });
+        }
 
         onComplete({
             totalCost,

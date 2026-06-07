@@ -13,18 +13,23 @@ class Algoritmos:
     def dijkstra_simple(grafo, inicio_id, destino_id, criterio="distancia",
                         excluir_secundarios=False, tipos_preferidos=None):
         """
-        Finds the shortest path between two airports using Dijkstra's algorithm.
+        Encuentra el camino más corto entre dos aeropuertos usando el algoritmo de Dijkstra.
+        
+        Justificación de uso (R2.2):
+        El algoritmo de Dijkstra es ideal y matemáticamente probado para encontrar el camino de 
+        menor costo (ya sea distancia, tiempo o dinero) entre un nodo origen y un destino en un 
+        grafo con pesos positivos. Garantiza encontrar la ruta óptima para el "viaje pre-planificado".
         
         Args:
-            grafo: Graph object containing all vertices and edges
-            inicio_id: IATA code of the origin airport
-            destino_id: IATA code of the destination airport
-            criterio: Optimization criterion - "distancia", "costo", or "tiempo"
-            excluir_secundarios: If True, skip non-hub airports (except origin/destination)
-            tipos_preferidos: List of preferred aircraft types to consider (None = all)
+            grafo: Objeto Grafo que contiene vértices y aristas
+            inicio_id: Código IATA del aeropuerto de origen
+            destino_id: Código IATA del aeropuerto de destino
+            criterio: Criterio de optimización - "distancia", "costo", o "tiempo"
+            excluir_secundarios: Si es True, omite aeropuertos que no sean HUB (salvo origen/destino)
+            tipos_preferidos: Lista de tipos de aeronave preferidos (None = todos)
         
         Returns:
-            tuple: (distances dict, predecessors dict, shortest path list)
+            tuple: (dict de distancias, dict de predecesores, lista del camino más corto)
         """
         # Build the set of valid vertices considering secondary airport filter
         todos = []
@@ -95,20 +100,27 @@ class Algoritmos:
     def maximizar_destinos(grafo, origen_id, limite, tipo_limite,
                            excluir_secundarios=False, tipos_preferidos=None):
         """
-        Finds the path that visits the maximum number of destinations
-        within a budget (USD) or time (minutes) constraint using DFS
-        with backtracking and pruning.
+        Encuentra la ruta que visita la mayor cantidad de destinos posibles
+        dentro de un límite de presupuesto (USD) o tiempo (minutos).
+        
+        Justificación de uso (R2.1):
+        Este problema es una variante del "Longest Path Problem" o del problema de la mochila
+        (Knapsack) aplicado a grafos. Como se busca maximizar nodos visitados bajo una restricción,
+        se utiliza una Búsqueda en Profundidad (DFS) con Backtracking y Poda (Pruning).
+        El backtracking explora sistemáticamente todas las permutaciones posibles de viaje,
+        mientras que la poda detiene ramas que exceden el límite de recursos, asegurando que
+        se encuentre la ruta con más escalas dentro del presupuesto/tiempo del viajero.
         
         Args:
-            grafo: Graph object
-            origen_id: IATA code of origin airport
-            limite: Maximum budget in USD or time in minutes
-            tipo_limite: "presupuesto" (budget) or "tiempo" (time)
-            excluir_secundarios: If True, skip non-hub airports
-            tipos_preferidos: List of allowed aircraft types (None = all)
+            grafo: Objeto Grafo
+            origen_id: Código IATA del aeropuerto de origen
+            limite: Límite máximo de presupuesto en USD o tiempo en minutos
+            tipo_limite: "presupuesto" o "tiempo"
+            excluir_secundarios: Si es True, omite aeropuertos secundarios
+            tipos_preferidos: Tipos de aeronave permitidos (None = todos)
         
         Returns:
-            dict with keys: ruta, tramos, costo_total, tiempo_total,
+            dict con llaves: ruta, tramos, costo_total, tiempo_total,
                            distancia_total, tipos_usados
         """
         config_aeronaves = grafo.config_global.get("aeronaves", {})
@@ -192,13 +204,13 @@ class Algoritmos:
                     costo_km = config_aeronaves[tipo]["costoKm"]
                     tiempo_km = config_aeronaves[tipo]["tiempoKm"]
 
-                    # If costoBase is 0, the route is subsidized and costs nothing.
-                    # Otherwise, add costoBase to the per-km cost.
+                    # costoBase == 0 → ruta subsidiada (gratuita)
+                    # costoBase != 0 → ruta normal: costo = distancia × costo_por_km
                     if arista.costoBase == 0:
                         costo_tramo = 0
                         es_subsidiada = True
                     else:
-                        costo_tramo = arista.costoBase + (arista.distanciaKm * costo_km)
+                        costo_tramo = arista.distanciaKm * costo_km
                         es_subsidiada = False
                         
                     tiempo_tramo = arista.distanciaKm * tiempo_km

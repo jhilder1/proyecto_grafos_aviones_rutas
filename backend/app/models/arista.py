@@ -37,7 +37,9 @@ class Arista:
                 tiempo_km = config_aeronaves[tipo]["tiempoKm"]
 
                 if criterio == "costo":
-                    valor = 0 if self.costoBase == 0 else self.costoBase + (self.distanciaKm * costo_km)
+                    # costoBase == 0 indica ruta subsidiada (gratuita)
+                    # costoBase != 0 indica ruta normal: costo = distancia × costo_por_km
+                    valor = 0 if self.costoBase == 0 else self.distanciaKm * costo_km
                 elif criterio == "tiempo":
                     valor = self.distanciaKm * tiempo_km
                 else:

@@ -61,7 +61,11 @@ def construir_itinerario(grafo, path, criterio, tipos_preferidos=None):
             costo_km = config_aeronaves[tipo]["costoKm"]
             tiempo_km = config_aeronaves[tipo]["tiempoKm"]
 
-            costo = arista.distanciaKm * costo_km
+            # costoBase == 0 → ruta subsidiada (gratuita)
+            if arista.costoBase == 0:
+                costo = 0
+            else:
+                costo = arista.distanciaKm * costo_km
             tiempo = arista.distanciaKm * tiempo_km
 
             if criterio == "costo":
