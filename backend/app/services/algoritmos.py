@@ -1,8 +1,10 @@
 """
 Algorithm module for SkyRoute Planner.
-Contains graph traversal algorithms for route optimization:
-- Dijkstra's shortest path (with filters)
-- DFS-based maximum destination coverage with budget/time constraints
+
+Provides graph traversal and optimization routines used by the API:
+- `dijkstra_simple` for single-source shortest path with optional filters.
+- `maximizar_destinos` to maximize the number of visited destinations under
+    budget or time constraints using DFS with pruning.
 """
 
 
@@ -13,23 +15,23 @@ class Algoritmos:
     def dijkstra_simple(grafo, inicio_id, destino_id, criterio="distancia",
                         excluir_secundarios=False, tipos_preferidos=None):
         """
-        Encuentra el camino más corto entre dos aeropuertos usando el algoritmo de Dijkstra.
-        
-        Justificación de uso (R2.2):
-        El algoritmo de Dijkstra es ideal y matemáticamente probado para encontrar el camino de 
-        menor costo (ya sea distancia, tiempo o dinero) entre un nodo origen y un destino en un 
-        grafo con pesos positivos. Garantiza encontrar la ruta óptima para el "viaje pre-planificado".
-        
+        Find the shortest path between two airports using Dijkstra's algorithm.
+
+        Rationale: Dijkstra is suitable for finding the minimum-cost path when
+        edge weights are non-negative. The implementation supports different
+        optimization criteria (distance, cost, time) and optional filters such
+        as excluding non-hub airports or limiting allowed aircraft types.
+
         Args:
-            grafo: Objeto Grafo que contiene vértices y aristas
-            inicio_id: Código IATA del aeropuerto de origen
-            destino_id: Código IATA del aeropuerto de destino
-            criterio: Criterio de optimización - "distancia", "costo", o "tiempo"
-            excluir_secundarios: Si es True, omite aeropuertos que no sean HUB (salvo origen/destino)
-            tipos_preferidos: Lista de tipos de aeronave preferidos (None = todos)
-        
+            grafo: `Grafo` instance containing vertices and edges.
+            inicio_id: IATA code of the origin airport.
+            destino_id: IATA code of the destination airport.
+            criterio: Optimization criterion - "distancia", "costo", or "tiempo".
+            excluir_secundarios: If True, skip non-hub airports (except origin/destination).
+            tipos_preferidos: Optional list of preferred aircraft types (None = all).
+
         Returns:
-            tuple: (dict de distancias, dict de predecesores, lista del camino más corto)
+            tuple: (distances dict, predecessors dict, shortest path list).
         """
         # Build the set of valid vertices considering secondary airport filter
         todos = []
@@ -100,27 +102,24 @@ class Algoritmos:
     def maximizar_destinos(grafo, origen_id, limite, tipo_limite,
                            excluir_secundarios=False, tipos_preferidos=None):
         """
-        Encuentra la ruta que visita la mayor cantidad de destinos posibles
-        dentro de un límite de presupuesto (USD) o tiempo (minutos).
-        
-        Justificación de uso (R2.1):
-        Este problema es una variante del "Longest Path Problem" o del problema de la mochila
-        (Knapsack) aplicado a grafos. Como se busca maximizar nodos visitados bajo una restricción,
-        se utiliza una Búsqueda en Profundidad (DFS) con Backtracking y Poda (Pruning).
-        El backtracking explora sistemáticamente todas las permutaciones posibles de viaje,
-        mientras que la poda detiene ramas que exceden el límite de recursos, asegurando que
-        se encuentre la ruta con más escalas dentro del presupuesto/tiempo del viajero.
-        
+        Search for a route that visits the maximum number of distinct destinations
+        under a budget or time constraint.
+
+        Approach: This is a constrained combinatorial search. The implementation
+        uses Depth-First Search (DFS) with backtracking and pruning to explore
+        candidate itineraries and discard branches that exceed the resource limit
+        (budget in USD or time in minutes).
+
         Args:
-            grafo: Objeto Grafo
-            origen_id: Código IATA del aeropuerto de origen
-            limite: Límite máximo de presupuesto en USD o tiempo en minutos
-            tipo_limite: "presupuesto" o "tiempo"
-            excluir_secundarios: Si es True, omite aeropuertos secundarios
-            tipos_preferidos: Tipos de aeronave permitidos (None = todos)
-        
+            grafo: `Grafo` instance.
+            origen_id: IATA code of the starting airport.
+            limite: Numeric resource limit (budget or time).
+            tipo_limite: Either "presupuesto" (budget) or "tiempo" (time).
+            excluir_secundarios: If True, skip secondary (non-hub) airports.
+            tipos_preferidos: Allowed aircraft types (None = all).
+
         Returns:
-            dict con llaves: ruta, tramos, costo_total, tiempo_total,
+            dict with keys: ruta, tramos, costo_total, tiempo_total,
                            distancia_total, tipos_usados
         """
         config_aeronaves = grafo.config_global.get("aeronaves", {})

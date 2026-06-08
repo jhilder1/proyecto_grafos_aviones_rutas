@@ -1,3 +1,5 @@
+// main.jsx
+// Application entry point for the React frontend. Mounts <App/> into the DOM.
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import './index.css'

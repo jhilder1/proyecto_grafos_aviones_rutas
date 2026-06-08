@@ -1,6 +1,14 @@
+"""
+Graph model for the flight network.
+
+This module defines `Grafo`, a lightweight adjacency-list graph used by
+the backend algorithms and the API. It holds vertices keyed by IATA code
+and a global configuration used for cost/time calculations.
+"""
+
 class Grafo:
     def __init__(self):
-        self.vertices = {} # Dictionary for fast IATA lookup
+        self.vertices = {}  # Dictionary for fast IATA lookup
         self.config_global = {
             "aeronaves": {},
             "presupuestoMinimoPorc": 35,
@@ -48,6 +56,7 @@ class Grafo:
         return rutas
 
     def imprimir_grafo(self):
+        # Simple human-readable dump for debugging
         for identificador, v in self.vertices.items():
             print("***************************")
             print(v.identificador, "-", v.nombre)
@@ -56,7 +65,7 @@ class Grafo:
         print("-------------------------------------")
         
     def to_dict(self):
-        """Converts the graph to a frontend-friendly format (nodes and edges)"""
+        """Converts the graph to a frontend-friendly format (nodes and edges)."""
         nodos = []
         for v in self.vertices.values():
             nodo_dict = v.to_dict()

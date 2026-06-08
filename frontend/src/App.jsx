@@ -1,3 +1,10 @@
+// App.jsx
+// Main React application component. Orchestrates UI panels, state, and
+// interactions between the graph visualization and planning/simulation controls.
+// High-level responsibilities:
+// - Load network data from backend
+// - Manage current selection, planning results and simulation state
+// - Compose child panels (NetworkGraph, PlanningPanel, TripSimulator, etc.)
 import { useState, useEffect, useCallback } from 'react';
 import NetworkGraph from './components/NetworkGraph';
 import AirportSidebar from './components/AirportSidebar';

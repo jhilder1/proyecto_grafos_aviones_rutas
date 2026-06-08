@@ -1,3 +1,7 @@
+// ConfigPanel.jsx
+// UI to edit aircraft configuration values (cost/time per km).
+// Edits are persisted via the backend `updateConfig` endpoint.
+// Props: config, onClose, onSaveComplete
 import React, { useState, useEffect } from 'react';
 import { updateConfig } from '../services/api';
 

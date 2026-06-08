@@ -1,3 +1,13 @@
+// TripSimulator.jsx
+// Simulates traveler movement along an itinerary.
+// Props:
+// - itinerary: array of leg objects
+// - onProgressUpdate(progress): called with 0-100 progress
+// - onLegComplete(legIndex): called when a leg finishes
+// - onInterruption(origin): called when an interruption occurs
+// - onRequestInterruption(): request to interrupt current leg
+// - isInterrupted: boolean flag
+// - currentAirport: current airport id
 import React, { useState, useEffect, useRef } from 'react';
 
 const TripSimulator = ({ itinerary, onProgressUpdate, onLegComplete, onInterruption, onRequestInterruption, isInterrupted, currentAirport }) => {

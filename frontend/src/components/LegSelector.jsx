@@ -1,3 +1,6 @@
+// LegSelector.jsx
+// Small component to display and select legs within an itinerary.
+// Props: itinerary (array), currentLegIndex, onSelectLeg(index)
 import React, { useState } from 'react';
 
 const LegSelector = ({ originId, destId, airports, edges, config, stats, onSelect }) => {

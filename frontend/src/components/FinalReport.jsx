@@ -1,3 +1,7 @@
+// FinalReport.jsx
+// Presents a final trip report with visited destinations, flown legs,
+// activities and earnings. Used after completing a simulated trip.
+// Props: history, initialBudget, initialTime, finalStats, airports, onClose
 import React from 'react';
 
 const FinalReport = ({ history, initialBudget, initialTime, finalStats, airports, onClose }) => {

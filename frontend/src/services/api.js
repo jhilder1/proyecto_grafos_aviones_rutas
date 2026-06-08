@@ -1,3 +1,6 @@
+// api.js
+// Small wrapper around backend REST endpoints used by the frontend.
+// Exports functions that call the API and return parsed JSON payloads.
 const API_URL = 'http://localhost:8000/api';
 
 export const fetchNetworkData = async () => {
@@ -32,7 +35,7 @@ export const planMaximizeDestinations = async (params) => {
         });
         if (!response.ok) {
             const err = await response.json();
-            throw new Error(err.detail || 'Error en la planificación');
+            throw new Error(err.detail || 'Planning error');
         }
         return await response.json();
     } catch (error) {
@@ -50,7 +53,7 @@ export const planBestRoute = async (params) => {
         });
         if (!response.ok) {
             const err = await response.json();
-            throw new Error(err.detail || 'Error en la planificación');
+            throw new Error(err.detail || 'Planning error');
         }
         return await response.json();
     } catch (error) {

@@ -1,3 +1,12 @@
+// NetworkGraph.jsx
+// Renders the interactive force-directed map of airports and routes.
+// Props:
+// - data: graph data with `nodes` and `edges` used by react-force-graph-2d
+// - onNodeClick(node): callback when a node is clicked
+// - onLinkClick(link): callback when a link is clicked
+// - highlightedRoute: array of node ids representing the active itinerary
+// - travelerProgress: numeric 0-100 indicating traveler position along activeLeg
+// - activeLeg: { origen, destino } representing the current leg in simulation
 import { useEffect, useRef, useState } from 'react';
 import ForceGraph2D from 'react-force-graph-2d';
 

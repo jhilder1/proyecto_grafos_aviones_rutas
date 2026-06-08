@@ -1,3 +1,7 @@
+// PlanningPanel.jsx
+// UI controls for building planning requests and triggering route algorithms.
+// Handles user inputs for origin, destination, criteria and submits requests
+// to the backend planning endpoints.
 import React, { useState } from 'react';
 import { planMaximizeDestinations, planBestRoute } from '../services/api';
 

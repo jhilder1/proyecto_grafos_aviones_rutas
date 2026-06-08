@@ -1,8 +1,18 @@
 class Vertice:
+    """Represents an airport (vertex) in the flight network graph.
+
+    Attributes:
+        identificador: IATA airport code used as the unique id.
+        nombre, ciudad, pais: Human readable metadata.
+        esHub: Boolean indicating if the airport is a hub.
+        adyacencias: List of outgoing edges (`Arista` instances).
+        activa: Whether the vertex is active (used for future features).
+    """
+
     def __init__(self, identificador, nombre="", ciudad="", pais="", zonaHoraria="", esHub=False, 
                  costoAlojamiento=0, costoAlimentacion=0, actividades=None, trabajos=None,
                  aerolineas=None, activa=True):
-        self.identificador = identificador # ID (IATA)
+        self.identificador = identificador  # ID (IATA)
         self.nombre = nombre
         self.ciudad = ciudad
         self.pais = pais
@@ -17,9 +27,11 @@ class Vertice:
         self.activa = activa
 
     def agregar_adyacencia(self, arista):
+        """Append an outgoing edge (`Arista`) to this vertex."""
         self.adyacencias.append(arista)
         
     def to_dict(self):
+        """Return a JSON-serializable representation used by the frontend."""
         return {
             "id": self.identificador,
             "nombre": self.nombre,

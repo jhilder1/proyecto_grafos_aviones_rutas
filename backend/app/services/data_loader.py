@@ -1,3 +1,8 @@
+"""
+Utility to load the flight network from a JSON file into the in-memory
+`Grafo` structure used by the backend.
+"""
+
 import json
 import os
 from app.models.graph import Grafo
@@ -8,19 +13,23 @@ from app.models.arista import Arista
 class DataLoader:
     @staticmethod
     def load_graph_from_json(file_path: str) -> Grafo:
+        """Load and parse the JSON `network.json` into a `Grafo` instance.
+
+        Raises `FileNotFoundError` if the provided path does not exist.
+        """
         grafo = Grafo()
         
         if not os.path.exists(file_path):
-            raise FileNotFoundError(f"El archivo {file_path} no existe.")
+            raise FileNotFoundError(f"The file {file_path} does not exist.")
             
         with open(file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
             
-        # Cargar configuración global si existe
+        # Load global configuration if present
         if "configuracionGlobal" in data:
             grafo.set_config(data["configuracionGlobal"])
             
-        # 1. Cargar Vértices (Aeropuertos)
+        # 1. Load vertices (airports)
         for aero_data in data.get("nodos", []):
             vertice = Vertice(
                 identificador=aero_data["id"],
@@ -37,7 +46,7 @@ class DataLoader:
             )
             grafo.agregar_vertice(vertice)
             
-        # 2. Cargar Aristas (Rutas)
+        # 2. Load edges (routes)
         for ruta_data in data.get("aristas", []):
             origen_id = ruta_data["origen"]
             destino_id = ruta_data["destino"]

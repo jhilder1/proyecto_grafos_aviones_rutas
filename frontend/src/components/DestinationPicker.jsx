@@ -1,3 +1,8 @@
+// DestinationPicker.jsx
+// Step-by-step free exploration UI for selecting next destination from
+// the current airport. Calls backend to fetch neighbor options and
+// enforces budget/time rules before confirming a selection.
+// Props: currentAirportId, airports, stats, config, visitedAirports, onSelectDestination, onFinishTrip
 import React, { useState, useEffect } from 'react';
 import { fetchAirportNeighbors } from '../services/api';
 

@@ -1,3 +1,7 @@
+// AirportStayPanel.jsx
+// Handles mandatory biological obligations (meals, sleep), optional activities
+// and temporary jobs while the traveler stays at an airport.
+// Props: airportId, airports, config, stats, onComplete
 import React, { useState } from 'react';
 
 const AirportStayPanel = ({ airportId, airports, config, stats, onComplete }) => {

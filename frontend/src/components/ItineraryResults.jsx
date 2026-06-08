@@ -1,3 +1,8 @@
+// ItineraryResults.jsx
+// Shows planning results returned by the backend. Supports two modes:
+// - 'maximize' results with budget/time tabs
+// - 'route' results with per-criterion routes
+// Props: results, airports, onClose, onHighlightRoute, onStartTrip
 import React, { useState } from 'react';
 
 const ItineraryResults = ({ results, airports, onClose, onHighlightRoute, onStartTrip }) => {

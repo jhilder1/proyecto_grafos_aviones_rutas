@@ -1,4 +1,7 @@
 /* eslint-disable react/prop-types */
+// StartupScreen.jsx
+// Initial screen shown to the user when the app loads. Provides quick
+// instructions and a button to start loading the network.
 import React, { useRef, useState } from 'react';
 import { uploadNetworkData } from '../services/api';
 

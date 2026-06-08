@@ -1,3 +1,12 @@
+"""
+API route definitions for SkyRoute Planner.
+
+This module defines the FastAPI router that exposes endpoints used by
+the frontend to query the flight network, request route planning
+operations, and update configuration. The graph is loaded once at
+module import time into a simple in-memory singleton for this demo.
+"""
+
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any

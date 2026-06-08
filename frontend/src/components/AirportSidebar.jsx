@@ -1,3 +1,7 @@
+// AirportSidebar.jsx
+// Sidebar showing detailed metadata for a selected airport: costs, activities,
+// available aircraft types, outgoing routes and jobs.
+// Props: airport, onClose
 import React from 'react';
 
 const AirportSidebar = ({ airport, onClose }) => {
