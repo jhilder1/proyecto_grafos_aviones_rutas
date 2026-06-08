@@ -200,6 +200,12 @@ async def plan_maximize_destinations(req: MaxDestinosRequest):
         excluir_secundarios=req.excluirSecundarios,
         tipos_preferidos=tipos
     )
+    
+    print("\n===== MAXIMIZAR POR TIEMPO =====")
+    print(f"Tiempo límite: {tiempo_minutos}")
+    print(f"Tiempo encontrado: {resultado_tiempo['tiempo_total']}")
+    print(f"Ruta: {resultado_tiempo['ruta']}")
+    print("=================================\n")
 
     return {
         "itinerario_presupuesto": {

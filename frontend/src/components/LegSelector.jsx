@@ -50,9 +50,8 @@ const LegSelector = ({ originId, destId, airports, edges, config, stats, onSelec
                 {options.map((opt, idx) => (
                     <div 
                         key={idx} 
-                        className={`aircraft-card ${selectedAircraft?.type === opt.type ? 'selected' : ''} ${(!opt.canAfford || opt.exceedsSubsidized) ? 'disabled' : ''}`}
-                        onClick={() => (opt.canAfford && !opt.exceedsSubsidized) && setSelectedAircraft(opt)}
-                    >
+                        className={`aircraft-card ${selectedAircraft?.type === opt.type ? 'selected' : ''} ${(!opt.canAfford || !opt.canTime || opt.exceedsSubsidized)? 'disabled': ''}`}
+                         onClick={() =>(opt.canAfford && opt.canTime &&!opt.exceedsSubsidized)&& setSelectedAircraft(opt)}                    >
                         <div className="aircraft-type">{opt.type}</div>
                         <div className="aircraft-metrics">
                             <span className="metric">💰 Costo: ${opt.cost}</span>
@@ -61,6 +60,7 @@ const LegSelector = ({ originId, destId, airports, edges, config, stats, onSelec
                         {opt.isSubsidized && <span className="subsidized-badge">Ruta Subsidiada</span>}
                         {opt.exceedsSubsidized && <span className="error-text">Límite subsidiado (20%) excedido</span>}
                         {!opt.canAfford && <span className="error-text">Presupuesto insuficiente</span>}
+                        {!opt.canTime && (<span className="error-text">Tiempo insuficiente</span>)}
                     </div>
                 ))}
             </div>
