@@ -13,38 +13,56 @@ const AirportStayPanel = ({ airportId, airports, config, stats, onComplete }) =>
     const [jobHours, setJobHours] = useState(1);
     
     // Intervalos configurables (fallback a 8 y 20 si no existen)
-    const mealInterval = config?.configuracionGlobal?.intervaloAlimentacion || 8;
-    const sleepInterval = config?.configuracionGlobal?.intervaloAlojamiento || 20;
-    const minBudgetPct = (config?.configuracionGlobal?.presupuestoMinimoPorc || 35) / 100;
+    // config ya es config_global directamente (viene de grafo.to_dict())
+    const mealInterval = config?.intervaloAlimentacion || 8;
+    const sleepInterval = config?.intervaloAlojamiento || 20;
+    const minBudgetPct = (config?.presupuestoMinimoPorc || 35) / 100;
 
-    // Check obligations — these are MANDATORY per R2.3
-    const needsMeal = stats.hoursSinceMeal >= mealInterval;
-    const needsSleep = stats.hoursSinceSleep >= sleepInterval;
-    
-    // Jobs only available if budget < minBudgetPct of initial (R2.3)
-    const canWork = stats.budget < (stats.initialBudget * minBudgetPct);
-
-    // Calculate meal cost (R2.3: if triggered during flight, use departure airport cost)
-    const mealCost = needsMeal 
-        ? (stats.mealTriggeredDuringFlight ? stats.lastAirportMealCost : airport.costoAlimentacion) 
-        : 0;
-    const sleepCost = needsSleep ? airport.costoAlojamiento : 0;
+    // Calculate optional time first
     const activitiesCost = selectedActivities.reduce((sum, act) => sum + act.costoUSD, 0);
     const activitiesTime = selectedActivities.reduce((sum, act) => sum + act.duracionMin, 0);
     const jobEarnings = selectedJob ? selectedJob.tarifaHora * jobHours : 0;
     const jobTime = selectedJob ? jobHours * 60 : 0;
+    const optionalTime = activitiesTime + jobTime;
 
+    // Check obligations dynamically
+    let projectedMeal = stats.hoursSinceMeal + (optionalTime / 60);
+    let projectedSleep = stats.hoursSinceSleep + (optionalTime / 60);
+
+    let needsMeal = projectedMeal >= mealInterval;
+    let needsSleep = projectedSleep >= sleepInterval;
+
+    // Cascading effects: Sleep takes 8h, Meal takes 30m
+    if (needsSleep && !needsMeal) {
+        projectedMeal += 8;
+        if (projectedMeal >= mealInterval) needsMeal = true;
+    }
+    if (needsMeal && !needsSleep) {
+        projectedSleep += 0.5;
+        if (projectedSleep >= sleepInterval) needsSleep = true;
+    }
+
+    const mealTime = needsMeal ? 30 : 0;
+    const sleepTime = needsSleep ? 480 : 0;
+
+    // Jobs only available if budget < minBudgetPct of initial (R2.3)
+    const canWork = stats.budget < (stats.initialBudget * minBudgetPct);
+
+    // Calculate meal cost (R2.3: if triggered during flight, use departure airport cost)
+    // If it triggered during the stay, use current airport cost.
+    const mealCost = needsMeal 
+        ? (stats.hoursSinceMeal >= mealInterval && stats.mealTriggeredDuringFlight ? stats.lastAirportMealCost : airport.costoAlimentacion) 
+        : 0;
+    const sleepCost = needsSleep ? airport.costoAlojamiento : 0;
+    
     // Mandatory costs are always applied
     const mandatoryCost = mealCost + sleepCost;
     const totalCost = mandatoryCost + activitiesCost;
     
-    // Sleep takes 8 hours (480 min), meal takes 30 min
-    const mealTime = needsMeal ? 30 : 0;
-    const sleepTime = needsSleep ? 480 : 0;
     const mandatoryTime = mealTime + sleepTime;
     const estanciaMinima = stats.estanciaMinima || 0;
-    const totalTime = Math.max(estanciaMinima, mandatoryTime + activitiesTime + jobTime);
-    const freeTime = Math.max(0, estanciaMinima - (mandatoryTime + activitiesTime + jobTime));
+    const totalTime = Math.max(estanciaMinima, mandatoryTime + optionalTime);
+    const freeTime = Math.max(0, estanciaMinima - (mandatoryTime + optionalTime));
 
     const toggleActivity = (act) => {
         if (selectedActivities.find(a => a.nombre === act.nombre)) {

@@ -2,15 +2,15 @@
     "configuracionGlobal": {
         "aeronaves": {
             "Avion Comercial": {
-                "costoKm": 0.25,
-                "tiempoKm": 0.8
+                "costoKm": 0.18,
+                "tiempoKm": 0.7
             },
             "Avion Regional": {
-                "costoKm": 0.2,
-                "tiempoKm": 1.2
+                "costoKm": 0.25,
+                "tiempoKm": 1.1
             },
             "Helice": {
-                "costoKm": 0.15,
+                "costoKm": 0.12,
                 "tiempoKm": 2.5
             }
         },

@@ -62,12 +62,12 @@ export const planBestRoute = async (params) => {
     }
 };
 
-export const toggleRouteStatus = async (origen, destino, activa) => {
+export const toggleRouteStatus = async (origen, destino, activa, motivo = null) => {
     try {
         const response = await fetch(`${API_URL}/route/toggle`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ origen, destino, activa })
+            body: JSON.stringify({ origen, destino, activa, motivo })
         });
         if (!response.ok) throw new Error('Error toggling route status');
         return await response.json();

@@ -117,6 +117,7 @@ const FinalReport = ({ history, initialBudget, initialTime, finalStats, airports
                             <table className="report-table">
                                 <thead>
                                     <tr>
+                                        <th>Lugar</th>
                                         <th>Trabajo</th>
                                         <th>Horas</th>
                                         <th>Ingreso</th>
@@ -125,12 +126,13 @@ const FinalReport = ({ history, initialBudget, initialTime, finalStats, airports
                                 <tbody>
                                     {history.jobs.map((j, i) => (
                                         <tr key={i}>
+                                            <td>{j.aeropuerto || '-'}</td>
                                             <td>{j.nombre}</td>
                                             <td>{j.hours} h</td>
                                             <td>${j.earnings}</td>
                                         </tr>
                                     ))}
-                                    {history.jobs.length === 0 && <tr><td colSpan="3" style={{textAlign: 'center', opacity: 0.5}}>Ninguno</td></tr>}
+                                    {history.jobs.length === 0 && <tr><td colSpan="4" style={{textAlign: 'center', opacity: 0.5}}>Ninguno</td></tr>}
                                 </tbody>
                             </table>
                         </div>

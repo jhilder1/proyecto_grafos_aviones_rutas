@@ -104,10 +104,22 @@ const PlanningPanel = ({ airports, onResults, onHighlightRoute, onStartFreeExplo
         setLoading(false);
     };
 
-    const handleStartExploration = () => {
+    const handleStartExploration = async () => {
         if (!exploreOrigen) { setError('Selecciona un aeropuerto de origen'); return; }
         setError('');
-        onStartFreeExploration(exploreOrigen, Number(explorePresupuesto), Number(exploreTiempo));
+        setLoading(true);
+        try {
+            const args = { origen: exploreOrigen, presupuesto: Number(explorePresupuesto), tiempoDisponible: Number(exploreTiempo) };
+            const result = await planMaximizeDestinations(args);
+            let suggested = [];
+            if (result && result.itinerario_presupuesto && result.itinerario_presupuesto.ruta) {
+                suggested = result.itinerario_presupuesto.ruta;
+            }
+            onStartFreeExploration(exploreOrigen, Number(explorePresupuesto), Number(exploreTiempo), suggested);
+        } catch (err) {
+            setError(err.message || 'Error calculando sugerencia inicial');
+        }
+        setLoading(false);
     };
 
     if (collapsed) {

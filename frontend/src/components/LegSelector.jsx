@@ -18,9 +18,6 @@ const LegSelector = ({ originId, destId, airports, edges, config, stats, onSelec
 
     const options = edge.aeronaves.map(type => {
         const conf = aircraftConfig[type] || { costoKm: 0, tiempoKm: 0 };
-        // costoBase === 0 → ruta subsidiada (gratuita)
-        const cost = edge.costoBase === 0 ? 0 : edge.distanciaKm * conf.costoKm;
-        const time = edge.distanciaKm * conf.tiempoKm;
         const isSubsidized = edge.costoBase === 0;
         
         // Regla del 20%: máximo 20% de la distancia TOTAL puede ser subsidiada
@@ -28,14 +25,18 @@ const LegSelector = ({ originId, destId, airports, edges, config, stats, onSelec
         const maxSubsidized = baseDistance * 0.2;
         const exceedsSubsidized = isSubsidized && stats.distanciaSubsidiada > 0 && (stats.distanciaSubsidiada + edge.distanciaKm > maxSubsidized);
 
+        // Si excede el límite de subsidio, debe pagar el costo normal
+        const finalCost = isSubsidized && !exceedsSubsidized ? 0 : edge.distanciaKm * conf.costoKm;
+        const time = edge.distanciaKm * conf.tiempoKm;
+
         return {
             type,
-            cost,
+            cost: finalCost,
             time,
             distance: edge.distanciaKm,
-            isSubsidized,
+            isSubsidized: isSubsidized && !exceedsSubsidized, // Solo es subsidiado si realmente lo usa
             exceedsSubsidized,
-            canAfford: stats.budget >= cost,
+            canAfford: stats.budget >= finalCost,
             canTime: stats.timeRemaining >= time,
             estanciaMinima: edge.estanciaMinima || 0
         };
@@ -53,15 +54,15 @@ const LegSelector = ({ originId, destId, airports, edges, config, stats, onSelec
                 {options.map((opt, idx) => (
                     <div 
                         key={idx} 
-                        className={`aircraft-card ${selectedAircraft?.type === opt.type ? 'selected' : ''} ${(!opt.canAfford || !opt.canTime || opt.exceedsSubsidized)? 'disabled': ''}`}
-                         onClick={() =>(opt.canAfford && opt.canTime &&!opt.exceedsSubsidized)&& setSelectedAircraft(opt)}                    >
+                        className={`aircraft-card ${selectedAircraft?.type === opt.type ? 'selected' : ''} ${(!opt.canAfford || !opt.canTime)? 'disabled': ''}`}
+                         onClick={() =>(opt.canAfford && opt.canTime)&& setSelectedAircraft(opt)}                    >
                         <div className="aircraft-type">{opt.type}</div>
                         <div className="aircraft-metrics">
-                            <span className="metric">💰 Costo: ${opt.cost}</span>
+                            <span className="metric">💰 Costo: ${opt.cost.toFixed(2)}</span>
                             <span className="metric">⏱️ Tiempo: {opt.time.toFixed(1)} min</span>
                         </div>
-                        {opt.isSubsidized && <span className="subsidized-badge">Ruta Subsidiada</span>}
-                        {opt.exceedsSubsidized && <span className="error-text">Límite subsidiado (20%) excedido</span>}
+                        {opt.isSubsidized && <span className="subsidized-badge">Ruta Subsidiada (Gratis)</span>}
+                        {opt.exceedsSubsidized && <span className="error-text" style={{color: 'var(--warning)'}}>Sin cupo subsidiado (Pago normal)</span>}
                         {!opt.canAfford && <span className="error-text">Presupuesto insuficiente</span>}
                         {!opt.canTime && (<span className="error-text">Tiempo insuficiente</span>)}
                     </div>

@@ -13,33 +13,39 @@ class Algoritmos:
   
     @staticmethod
     def dijkstra_simple(grafo, inicio_id, destino_id, criterio="distancia",
-                        excluir_secundarios=False, tipos_preferidos=None):
+                        excluir_secundarios=False, tipos_preferidos=None, visitados_previos=None):
         """
-        Find the shortest path between two airports using Dijkstra's algorithm.
+        Encuentra el camino más corto entre dos aeropuertos usando el algoritmo de Dijkstra.
 
-        Rationale: Dijkstra is suitable for finding the minimum-cost path when
-        edge weights are non-negative. The implementation supports different
-        optimization criteria (distance, cost, time) and optional filters such
-        as excluding non-hub airports or limiting allowed aircraft types.
+        Justificación de su aplicabilidad: Dijkstra es el algoritmo ideal para encontrar 
+        el camino de costo mínimo en grafos donde los pesos de las aristas son no negativos 
+        (como distancias físicas, tiempo en minutos y costos en dólares). Su complejidad 
+        permite resolver eficientemente los requerimientos multicriterio descartando rutas 
+        subóptimas en cada iteración. Además, su estructura permite inyectar fácilmente 
+        las restricciones del usuario (ignorar nodos no-HUB o tipos de aeronaves específicos).
 
         Args:
-            grafo: `Grafo` instance containing vertices and edges.
-            inicio_id: IATA code of the origin airport.
-            destino_id: IATA code of the destination airport.
-            criterio: Optimization criterion - "distancia", "costo", or "tiempo".
-            excluir_secundarios: If True, skip non-hub airports (except origin/destination).
-            tipos_preferidos: Optional list of preferred aircraft types (None = all).
+            grafo: Instancia de `Grafo` que contiene los vértices y aristas.
+            inicio_id: Código IATA del aeropuerto de origen.
+            destino_id: Código IATA del aeropuerto de destino.
+            criterio: Criterio de optimización - "distancia", "costo", o "tiempo".
+            excluir_secundarios: Si es True, ignora los aeropuertos que no son HUB.
+            tipos_preferidos: Lista opcional de aeronaves permitidas.
+            visitados_previos: Lista opcional de aeropuertos que ya se visitaron y deben ignorarse.
 
         Returns:
-            tuple: (distances dict, predecessors dict, shortest path list).
+            tuple: (diccionario de distancias, diccionario de predecesores, lista con el camino más corto).
         """
-        # Build the set of valid vertices considering secondary airport filter
+        # Build the set of valid vertices considering filters
         todos = []
+        visitados_set = set(visitados_previos) if visitados_previos else set()
         for v_id, v in grafo.vertices.items():
             if excluir_secundarios and not v.esHub:
                 # Always include origin and destination even if secondary
                 if v_id != inicio_id and v_id != destino_id:
                     continue
+            if v_id in visitados_set and v_id != inicio_id and v_id != destino_id:
+                continue
             todos.append(v_id)
 
         dist = {v_id: float("inf") for v_id in todos}
@@ -100,26 +106,29 @@ class Algoritmos:
 
     @staticmethod
     def maximizar_destinos(grafo, origen_id, limite, tipo_limite,
-                           excluir_secundarios=False, tipos_preferidos=None):
+                           excluir_secundarios=False, tipos_preferidos=None, visitados_previos=None):
         """
-        Search for a route that visits the maximum number of distinct destinations
-        under a budget or time constraint.
+        R2.2a / R2.2b: Encuentra la ruta que maximice la cantidad de destinos visitados sin exceder un presupuesto o tiempo límite.
 
-        Approach: This is a constrained combinatorial search. The implementation
-        uses Depth-First Search (DFS) with backtracking and pruning to explore
-        candidate itineraries and discard branches that exceed the resource limit
-        (budget in USD or time in minutes).
+        Justificación de su aplicabilidad: Este requerimiento plantea un problema de optimización 
+        combinatoria con restricciones (knapsack/longest path problem). El uso de Búsqueda en Profundidad 
+        (DFS) con "backtracking" (marcha atrás) es completamente mandatorio y justificado aquí, ya que 
+        permite explorar de manera exhaustiva todas las ramas posibles del árbol de decisiones. 
+        Para garantizar eficiencia y no evaluar rutas imposibles, se integra una técnica de poda (pruning): 
+        si en medio del recorrido acumulado se excede el límite (presupuesto/tiempo), esa rama 
+        se descarta inmediatamente, optimizando drásticamente la búsqueda.
 
         Args:
-            grafo: `Grafo` instance.
-            origen_id: IATA code of the starting airport.
-            limite: Numeric resource limit (budget or time).
-            tipo_limite: Either "presupuesto" (budget) or "tiempo" (time).
-            excluir_secundarios: If True, skip secondary (non-hub) airports.
-            tipos_preferidos: Allowed aircraft types (None = all).
+            grafo: Instancia de `Grafo`.
+            origen_id: Código IATA del aeropuerto inicial.
+            limite: Límite de recursos numéricos (presupuesto o tiempo).
+            tipo_limite: "presupuesto" o "tiempo".
+            excluir_secundarios: Si es True, ignora aeropuertos secundarios (no-HUB).
+            tipos_preferidos: Tipos de aeronaves permitidas.
+            visitados_previos: Lista opcional de aeropuertos que ya se visitaron.
 
         Returns:
-            dict with keys: ruta, tramos, costo_total, tiempo_total,
+            dict con claves: ruta, tramos, costo_total, tiempo_total,
                            distancia_total, tipos_usados
         """
         config_aeronaves = grafo.config_global.get("aeronaves", {})
@@ -141,6 +150,9 @@ class Algoritmos:
             "tipos_usados": set()
         }
 
+        iteraciones = 0
+        MAX_ITERACIONES = 100000
+
         def es_mejor(ruta_actual, tipos_usados_actual, costo, tiempo):
             """Determines if the current path is better than the best found."""
             len_actual = len(ruta_actual)
@@ -154,6 +166,8 @@ class Algoritmos:
                 usa_todos_mejor = mejor["tipos_usados"] >= tipos_permitidos
                 if usa_todos_actual and not usa_todos_mejor:
                     return True
+                if not usa_todos_actual and usa_todos_mejor:
+                    return False
                 # If tied on type coverage, prefer lower cost/time
                 if tipo_limite == "presupuesto" and costo < mejor["costo_total"]:
                     return True
@@ -163,6 +177,11 @@ class Algoritmos:
 
         def dfs(actual_id, costo_acum, tiempo_acum, dist_acum,
                 visitados, ruta, tramos, tipos_usados):
+            nonlocal iteraciones
+            iteraciones += 1
+            if iteraciones > MAX_ITERACIONES:
+                return
+
             """Recursive DFS exploring all valid paths."""
             # Check if current solution is better
             if es_mejor(ruta, tipos_usados, costo_acum, tiempo_acum):
@@ -250,7 +269,9 @@ class Algoritmos:
                     visitados.remove(destino_id)
 
         # Start DFS from origin
-        visitados_inicial = {origen_id}
+        visitados_inicial = set(visitados_previos) if visitados_previos else set()
+        visitados_inicial.add(origen_id)
+
         dfs(origen_id, 0, 0, 0, visitados_inicial, [origen_id], [], set())
 
         # Convert tipos_usados set to list for JSON serialization

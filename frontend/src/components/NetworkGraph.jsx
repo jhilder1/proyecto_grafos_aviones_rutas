@@ -165,7 +165,7 @@ const NetworkGraph = ({ data, onNodeClick, onLinkClick, highlightedRoute, travel
                     if (textAngle > Math.PI / 2) textAngle = -(Math.PI - textAngle);
                     if (textAngle < -Math.PI / 2) textAngle = -(-Math.PI - textAngle);
 
-                    const label = link.activa === false ? '❌ BLOQUEADA' : `${link.distanciaKm}km (${link.aeronaves ? link.aeronaves.join(',') : ''})`;
+                    const label = link.activa === false ? `❌ BLOQUEADA${link.motivo_bloqueo ? ` (${link.motivo_bloqueo})` : ''}` : `${link.distanciaKm}km (${link.aeronaves ? link.aeronaves.join(',') : ''})`;
                     const fontSize = Math.min(MAX_FONT_SIZE, 12 / globalScale);
 
                     ctx.font = `${fontSize}px Inter, sans-serif`;

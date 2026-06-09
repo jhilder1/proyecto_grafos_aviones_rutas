@@ -167,7 +167,13 @@ const ItineraryResults = ({ results, airports, onClose, onHighlightRoute, onStar
                                 
                                 <button 
                                     className="start-trip-btn" 
-                                    onClick={() => onStartTrip(currentTab.tramos)}
+                                    onClick={() => {
+                                        if (results.type === 'route') {
+                                            onStartTrip(currentTab.tramos, Infinity, Infinity);
+                                        } else {
+                                            onStartTrip(currentTab.tramos, results.args?.presupuesto, results.args?.tiempoLimit);
+                                        }
+                                    }}
                                     disabled={!currentTab.tramos || currentTab.tramos.length === 0}
                                 >
                                     ✈️ Iniciar Viaje (Simulación)

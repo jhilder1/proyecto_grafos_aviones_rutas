@@ -10,14 +10,23 @@
 // - currentAirport: current airport id
 import React, { useState, useEffect, useRef } from 'react';
 
-const TripSimulator = ({ itinerary, onProgressUpdate, onLegComplete, onInterruption, onRequestInterruption, isInterrupted, currentAirport }) => {
+const TripSimulator = ({ itinerary, onProgressUpdate, onLegComplete, onInterruption, onRequestInterruption, isInterrupted, interruptedLeg, currentAirport }) => {
     const [legIndex, setLegIndex] = useState(0);
+    const [showReasonSelect, setShowReasonSelect] = useState(false);
+    const [selectedReason, setSelectedReason] = useState('Condiciones Meteorológicas');
+    const reasons = ['Condiciones Meteorológicas', 'Tráfico Aéreo', 'Falla Mecánica', 'Cierre de Espacio Aéreo', 'Cancelación de Aerolínea'];
     const [progress, setProgress] = useState(0);
     const [isReturning, setIsReturning] = useState(false);
     const [status, setStatus] = useState('En espera');
     
     const tickerRef = useRef();
-    const SIM_SPEED = 2; // Progress percentage per tick
+    const progressRef = useRef(progress);
+    const SIM_SPEED = 0.5; // Reduced from 2 to 0.5 to make flights 4x slower
+
+    // Update ref when progress changes so tick() has the latest value
+    useEffect(() => {
+        progressRef.current = progress;
+    }, [progress]);
 
     useEffect(() => {
         if (!itinerary || itinerary.length === 0) return;
@@ -38,10 +47,10 @@ const TripSimulator = ({ itinerary, onProgressUpdate, onLegComplete, onInterrupt
             }
 
             if (isInterrupted) {
-                if (!isReturning && progress > 0) {
+                if (!isReturning && progressRef.current > 0) {
                     setIsReturning(true);
                     setStatus('⚠️ RUTA INTERRUMPIDA: Regresando al origen...');
-                } else if (!isReturning && progress === 0) {
+                } else if (!isReturning && progressRef.current === 0) {
                     onInterruption(itinerary[legIndex].origen);
                 }
                 return;
@@ -71,7 +80,7 @@ const TripSimulator = ({ itinerary, onProgressUpdate, onLegComplete, onInterrupt
         tickerRef.current = setInterval(tick, 100);
 
         return () => clearInterval(tickerRef.current);
-    }, [legIndex, itinerary, isInterrupted, isReturning, progress]);
+    }, [legIndex, itinerary, isInterrupted, isReturning]);
 
     // Update parent about progress for graph visualization
     useEffect(() => {
@@ -105,17 +114,49 @@ const TripSimulator = ({ itinerary, onProgressUpdate, onLegComplete, onInterrupt
                 
                 {isReturning && (
                     <div className="sim-alert">
-                        Se ha detectado una interrupción en la red. El protocolo de seguridad exige el retorno inmediato al aeropuerto de origen.
+                        Se ha detectado una interrupción en la red{interruptedLeg && interruptedLeg.motivo ? ` por ${interruptedLeg.motivo}` : ''}. El protocolo de seguridad exige el retorno inmediato al aeropuerto de origen.
                     </div>
                 )}
                 
                 {!isInterrupted && !isReturning && progress < 90 && onRequestInterruption && (
-                    <button 
-                        onClick={onRequestInterruption}
-                        style={{ marginTop: '15px', width: '100%', padding: '10px', background: 'var(--danger)', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
-                    >
-                        ⚠️ Interrumpir Vuelo
-                    </button>
+                    <div style={{ marginTop: '15px' }}>
+                        {showReasonSelect ? (
+                            <div className="reason-selector">
+                                <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', color: '#ccc' }}>Motivo de interrupción:</label>
+                                <select 
+                                    value={selectedReason} 
+                                    onChange={(e) => setSelectedReason(e.target.value)}
+                                    style={{ width: '100%', padding: '8px', marginBottom: '10px', background: '#2A2A35', color: '#fff', border: '1px solid #444', borderRadius: '4px' }}
+                                >
+                                    {reasons.map(r => <option key={r} value={r}>{r}</option>)}
+                                </select>
+                                <div style={{ display: 'flex', gap: '10px' }}>
+                                    <button 
+                                        onClick={() => {
+                                            setShowReasonSelect(false);
+                                            onRequestInterruption(selectedReason);
+                                        }}
+                                        style={{ flex: 1, padding: '8px', background: 'var(--danger)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                                    >
+                                        Confirmar
+                                    </button>
+                                    <button 
+                                        onClick={() => setShowReasonSelect(false)}
+                                        style={{ flex: 1, padding: '8px', background: '#444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                                    >
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <button 
+                                onClick={() => setShowReasonSelect(true)}
+                                style={{ width: '100%', padding: '10px', background: 'var(--danger)', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
+                            >
+                                ⚠️ Interrumpir Vuelo
+                            </button>
+                        )}
+                    </div>
                 )}
             </div>
         </div>

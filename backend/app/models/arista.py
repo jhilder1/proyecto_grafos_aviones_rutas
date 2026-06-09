@@ -17,6 +17,7 @@ class Arista:
         self.costoBase = costoBase
         self.estanciaMinima = estanciaMinima
         self.activa = True  # For route interruption support (R4)
+        self.motivo_bloqueo = None # Reason for route interruption
 
     def get_peso(self, criterio, config_aeronaves, tipos_preferidos=None):
         """

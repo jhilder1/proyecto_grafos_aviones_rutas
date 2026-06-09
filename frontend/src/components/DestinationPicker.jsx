@@ -6,7 +6,7 @@
 import React, { useState, useEffect } from 'react';
 import { fetchAirportNeighbors } from '../services/api';
 
-const DestinationPicker = ({ currentAirportId, airports, stats, config, visitedAirports, onSelectDestination, onFinishTrip }) => {
+const DestinationPicker = ({ currentAirportId, airports, stats, config, visitedAirports, suggestedRoute, onSelectDestination, onFinishTrip }) => {
     const [neighbors, setNeighbors] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedDest, setSelectedDest] = useState(null);
@@ -75,12 +75,79 @@ const DestinationPicker = ({ currentAirportId, airports, stats, config, visitedA
     // Filter out already visited airports
     const availableNeighbors = neighbors.filter(n => !visitedAirports.includes(n.destino_id));
 
+    // Calculate bestDest for suggestions
+    let bestDestId = null;
+    let bestDestName = "";
+    let isGlobalSuggestion = false;
+
+    if (suggestedRoute && suggestedRoute.length > 0) {
+        const currentIndex = suggestedRoute.indexOf(currentAirportId);
+        if (currentIndex !== -1 && currentIndex < suggestedRoute.length - 1) {
+            const nextGlobalNode = suggestedRoute[currentIndex + 1];
+            if (availableNeighbors.some(n => n.destino_id === nextGlobalNode)) {
+                bestDestId = nextGlobalNode;
+                bestDestName = availableNeighbors.find(n => n.destino_id === nextGlobalNode)?.nombre;
+                isGlobalSuggestion = true;
+            }
+        }
+    }
+
+    if (!bestDestId && availableNeighbors.length > 0) {
+        // Fallback local heuristic
+        const unvisited = availableNeighbors.filter(n => !visitedAirports.includes(n.destino_id));
+        const candidates = unvisited.length > 0 ? unvisited : availableNeighbors;
+        
+        let bestScore = Infinity;
+        candidates.forEach(dest => {
+            const cheapestOpt = dest.opciones_aeronave.reduce((min, opt) => opt.costo < min ? opt.costo : min, Infinity);
+            if (stats.budget >= cheapestOpt) {
+                const destNode = airports.find(a => a.id === dest.destino_id);
+                const estStayCost = destNode ? (destNode.costoAlimentacion + destNode.costoAlojamiento) : 0;
+                const totalEstCost = cheapestOpt + estStayCost;
+                
+                const isSubsidized = dest.costoBase === 0;
+                const baseDist = Math.max(stats.distanciaTotal + dest.distanciaKm, 2000);
+                const breaksRule = isSubsidized && stats.distanciaSubsidiada > 0 && (stats.distanciaSubsidiada + dest.distanciaKm > baseDist * 0.2);
+                
+                let score = totalEstCost;
+                if (isSubsidized && !breaksRule) score -= 500; 
+                
+                if (score < bestScore) {
+                    bestScore = score;
+                    bestDestId = dest.destino_id;
+                    bestDestName = dest.nombre;
+                }
+            }
+        });
+    }
+
     return (
         <div className="destination-picker-panel animate-slide-in">
             <div className="panel-header">
                 <h3>🧭 Exploración Paso a Paso</h3>
                 <p>Estás en: <strong>{currentAirportId}</strong> — {currentAirport?.nombre}, {currentAirport?.ciudad}</p>
             </div>
+
+            {suggestedRoute && suggestedRoute.length > 0 && (
+                <div className="suggested-route" style={{
+                    background: 'rgba(255, 215, 0, 0.1)',
+                    border: '1px solid rgba(255, 215, 0, 0.3)',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    margin: '0 0 16px 0',
+                    color: '#FFD700',
+                    fontSize: '13px',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '8px',
+                    lineHeight: '1.5'
+                }}>
+                    <span style={{ whiteSpace: 'nowrap' }}>💡 <strong>Sugerencia Max Destinos:</strong></span>
+                    <span style={{ flex: 1, wordBreak: 'break-word' }}>
+                        {suggestedRoute.join(' → ')}
+                    </span>
+                </div>
+            )}
 
             {/* Stats Bar */}
             <div className="explorer-stats">
@@ -117,48 +184,17 @@ const DestinationPicker = ({ currentAirportId, airports, stats, config, visitedA
                         <label>Elige tu próximo destino ({availableNeighbors.length} disponibles):</label>
                         
                         {/* 🌟 Sugerencia del Sistema (R3) */}
-                        {(() => {
-                            const unvisited = availableNeighbors.filter(n => !visitedAirports.includes(n.destino_id));
-                            const candidates = unvisited.length > 0 ? unvisited : availableNeighbors;
-                            
-                            let bestDest = null;
-                            let bestScore = Infinity;
-                            
-                            candidates.forEach(dest => {
-                                const cheapestOpt = dest.opciones_aeronave.reduce((min, opt) => opt.costo < min ? opt.costo : min, Infinity);
-                                if (stats.budget >= cheapestOpt) {
-                                    const destNode = airports.find(a => a.id === dest.destino_id);
-                                    const estStayCost = destNode ? (destNode.costoAlimentacion + destNode.costoAlojamiento) : 0;
-                                    const totalEstCost = cheapestOpt + estStayCost;
-                                    
-                                    // Bonificación si es ruta subsidiada y no rompe regla
-                                    const isSubsidized = dest.costoBase === 0;
-                                    const baseDist = Math.max(stats.distanciaTotal + dest.distanciaKm, 2000);
-                                    const breaksRule = isSubsidized && stats.distanciaSubsidiada > 0 && (stats.distanciaSubsidiada + dest.distanciaKm > baseDist * 0.2);
-                                    
-                                    let score = totalEstCost;
-                                    if (isSubsidized && !breaksRule) score -= 500; // Gran bonificación por subsidiada
-                                    
-                                    if (score < bestScore) {
-                                        bestScore = score;
-                                        bestDest = dest;
-                                    }
-                                }
-                            });
-                            
-                            if (bestDest) {
-                                return (
-                                    <div className="suggestion-box" style={{ background: 'rgba(0, 229, 255, 0.1)', border: '1px dashed var(--accent-secondary)', padding: '10px', borderRadius: '10px', marginBottom: '15px' }}>
-                                        <div style={{ fontSize: '11px', color: 'var(--accent-secondary)', fontWeight: 'bold', marginBottom: '4px' }}>✨ SUGERENCIA DEL SISTEMA (R3)</div>
-                                        <div style={{ fontSize: '13px' }}>
-                                            Te recomendamos volar a <b>{bestDest.nombre} ({bestDest.destino_id})</b>. 
-                                            Es la opción más óptima para maximizar destinos considerando el costo del vuelo y la estancia.
-                                        </div>
-                                    </div>
-                                );
-                            }
-                            return null;
-                        })()}
+                        {bestDestId && (
+                            <div className="suggestion-box" style={{ background: 'rgba(255, 215, 0, 0.1)', border: '1px dashed #FFD700', padding: '10px', borderRadius: '10px', marginBottom: '15px' }}>
+                                <div style={{ fontSize: '11px', color: '#FFD700', fontWeight: 'bold', marginBottom: '4px' }}>✨ SUGERENCIA DEL SISTEMA (R3)</div>
+                                <div style={{ fontSize: '13px', color: 'var(--text)' }}>
+                                    Te recomendamos volar a <b>{bestDestName} ({bestDestId})</b>. 
+                                    {isGlobalSuggestion 
+                                        ? " Es el siguiente paso en tu ruta óptima para maximizar destinos."
+                                        : " Es la opción más óptima localmente considerando el costo del vuelo y la estancia."}
+                                </div>
+                            </div>
+                        )}
 
                         <div className="destinations-list">
                             {availableNeighbors.map((dest, idx) => {
@@ -167,11 +203,13 @@ const DestinationPicker = ({ currentAirportId, airports, stats, config, visitedA
                                 const canAffordAny = dest.opciones_aeronave.some(o => stats.budget >= o.costo);
                                 const canTimeAny = dest.opciones_aeronave.some(o => stats.timeRemaining >= o.tiempo);
                                 const isSelected = selectedDest?.destino_id === dest.destino_id;
+                                const isSuggested = bestDestId === dest.destino_id;
 
                                 return (
                                     <div
                                         key={idx}
                                         className={`dest-card ${isSelected ? 'selected' : ''} ${(!canAffordAny || !canTimeAny) ? 'disabled' : ''}`}
+                                        style={isSuggested ? { border: '2px solid #FFD700', boxShadow: '0 0 10px rgba(255,215,0,0.3)' } : {}}
                                         onClick={() => (canAffordAny && canTimeAny) && handleSelectDest(dest)}
                                     >
                                         <div className="dest-main">
@@ -202,33 +240,43 @@ const DestinationPicker = ({ currentAirportId, airports, stats, config, visitedA
                         <div className="panel-section">
                             <label>Selecciona aeronave para volar a {selectedDest.destino_id}:</label>
                             <div className="aircraft-options">
-                                {selectedDest.opciones_aeronave.map((opt, idx) => {
-                                    const isSubsidized = selectedDest.costoBase === 0;
-                                    const baseDistance = Math.max(stats.distanciaTotal + selectedDest.distanciaKm, 1000);
-                                    const maxSubsidized = baseDistance * 0.2;
-                                    const exceedsSubsidized = isSubsidized && (stats.distanciaSubsidiada + selectedDest.distanciaKm > maxSubsidized);
-                                    const canAfford = stats.budget >= opt.costo;
-                                    const canTime = stats.timeRemaining >= opt.tiempo;
-                                    const isDisabled = !canAfford || exceedsSubsidized || !canTime;
+                                {(() => {
+                                    const options = selectedDest.opciones_aeronave.map(opt => {
+                                        const isSubsidized = selectedDest.costoBase === 0;
+                                        const baseDistance = Math.max(stats.distanciaTotal + selectedDest.distanciaKm, 2000);
+                                        const maxSubsidized = baseDistance * 0.2;
+                                        const exceedsSubsidized = isSubsidized && stats.distanciaSubsidiada > 0 && (stats.distanciaSubsidiada + selectedDest.distanciaKm > maxSubsidized);
+                                        
+                                        const finalCost = exceedsSubsidized ? opt.costo : (isSubsidized ? 0 : opt.costo);
+                                        
+                                        return {
+                                            ...opt,
+                                            costo: finalCost,
+                                            isSubsidized: isSubsidized && !exceedsSubsidized,
+                                            exceedsSubsidized: exceedsSubsidized,
+                                            canAfford: stats.budget >= finalCost,
+                                            canTime: stats.timeRemaining >= opt.tiempo
+                                        };
+                                    });
 
-                                    return (
-                                        <div
-                                            key={idx}
-                                            className={`aircraft-card ${selectedAircraft?.tipo === opt.tipo ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}`}
-                                            onClick={() => !isDisabled && handleSelectAircraft(opt, selectedDest)}
+                                    return options.map((opt, idx) => (
+                                        <div 
+                                            key={idx} 
+                                            className={`aircraft-card ${selectedAircraft?.tipo === opt.tipo ? 'selected' : ''} ${(!opt.canAfford || !opt.canTime)? 'disabled': ''}`}
+                                            onClick={() =>(opt.canAfford && opt.canTime)&& handleSelectAircraft(opt, selectedDest)}
                                         >
                                             <div className="aircraft-type">{opt.tipo}</div>
                                             <div className="aircraft-metrics">
-                                                <span className="metric">💰 ${opt.costo}</span>
-                                                <span className="metric">⏱️ {opt.tiempo.toFixed(1)} min</span>
+                                                <span className="metric">💰 Costo: ${opt.costo.toFixed(2)}</span>
+                                                <span className="metric">⏱️ Tiempo: {opt.tiempo.toFixed(1)} min</span>
                                             </div>
-                                            {isSubsidized && <span className="subsidized-badge">Ruta Subsidiada</span>}
-                                            {exceedsSubsidized && <span className="error-text">Límite subsidiado (20%) excedido</span>}
-                                            {!canAfford && <span className="error-text">Presupuesto insuficiente</span>}
-                                            {!canTime && <span className="error-text">Tiempo insuficiente</span>}
+                                            {opt.isSubsidized && <span className="subsidized-badge">Ruta Subsidiada (Gratis)</span>}
+                                            {opt.exceedsSubsidized && <span className="error-text" style={{color: 'var(--warning)'}}>Sin cupo subsidiado (Pago normal)</span>}
+                                            {!opt.canAfford && <span className="error-text">Presupuesto insuficiente</span>}
+                                            {!opt.canTime && (<span className="error-text">Tiempo insuficiente</span>)}
                                         </div>
-                                    );
-                                })}
+                                    ));
+                                })()}
                             </div>
                         </div>
                     )}

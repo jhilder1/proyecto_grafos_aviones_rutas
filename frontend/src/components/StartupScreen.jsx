@@ -10,10 +10,6 @@ const StartupScreen = ({ onStart }) => {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const handleDefaultStart = () => {
-        onStart(); // Proceed with default backend graph
-    };
-
     const handleFileUpload = async (e) => {
         const file = e.target.files[0];
         if (!file) return;
@@ -38,26 +34,14 @@ const StartupScreen = ({ onStart }) => {
             <div className="startup-panel animate-slide-in">
                 <div className="startup-badge">SkyRoute Planner</div>
                 <h2>✈️ Bienvenido</h2>
-                <p>Selecciona una opción para comenzar a planificar tu red de vuelos.</p>
+                <p>Carga el archivo JSON con la red aérea para comenzar a planificar.</p>
 
-                <div className="startup-actions">
-                    <button className="startup-button startup-button-primary" onClick={handleDefaultStart} disabled={loading}>
-                        <span className="startup-button-icon">⚡</span>
-                        <span>
-                            <strong>Usar red por defecto</strong>
-                            <small>Inicia con la red cargada en el sistema</small>
-                        </span>
-                    </button>
-
-                    <div className="startup-divider">
-                        <span>o</span>
-                    </div>
-
-                    <button className="startup-button startup-button-secondary" onClick={() => fileInputRef.current.click()} disabled={loading}>
+                <div className="startup-actions" style={{ marginTop: '20px' }}>
+                    <button className="startup-button startup-button-primary" onClick={() => fileInputRef.current.click()} disabled={loading}>
                         <span className="startup-button-icon">📄</span>
                         <span>
-                            <strong>Cargar JSON externo</strong>
-                            <small>Importa una red personalizada desde tu archivo</small>
+                            <strong>Cargar red (JSON)</strong>
+                            <small>Importa la red aérea desde tu archivo local</small>
                         </span>
                     </button>
                     <input 

@@ -43,6 +43,7 @@ function App() {
   const [tripMode, setTripMode] = useState('guided');
   
   const [showConfig, setShowConfig] = useState(false);
+  const [linkToBlock, setLinkToBlock] = useState(null);
 
   // Dynamic Trip Balances
   const [tripStats, setTripStats] = useState({
@@ -91,7 +92,7 @@ function App() {
   const handleStartTrip = (itinerary, budget, timeHours, isRecalculation = false) => {
     setActiveItinerary(itinerary);
     setCurrentLegIndex(0);
-    setTripPhase('at_airport');
+    setTripPhase(isRecalculation ? 'selecting_leg' : 'at_airport');
     setIsSimulating(true);
     setTripMode('guided');
     
@@ -122,15 +123,21 @@ function App() {
 
       setVisitedAirports([startAirport]);
       setHighlightedRoute([startAirport]);
+    } else {
+      // Restore highlightedRoute to just the actual visited path so animation works correctly
+      setHighlightedRoute([...visitedAirports]);
     }
   };
 
+  const [suggestedRoute, setSuggestedRoute] = useState([]);
+  
   // ── Free Exploration Trip (R2.3) ───────────────────────────
-  const handleStartFreeExploration = (originIata, budget, timeHours) => {
+  const handleStartFreeExploration = (originIata, budget, timeHours, suggested = []) => {
     setTripPhase('at_airport');
     setIsSimulating(true);
     setTripMode('free');
     setActiveItinerary(null);
+    setSuggestedRoute(suggested);
     
     const initialBudget = budget || 5000;
     const initialTime = (timeHours || 72) * 60;
@@ -162,34 +169,77 @@ function App() {
   const handleLinkClick = async (link) => {
     const sourceId = typeof link.source === 'object' ? link.source.id : link.source;
     const targetId = typeof link.target === 'object' ? link.target.id : link.target;
-    const newStatus = link.activa === false;
-    try {
-      await toggleRouteStatus(sourceId, targetId, newStatus);
-      await loadData(true);
-      if (!newStatus) {
-        if (activeLeg && activeLeg.origen === sourceId && activeLeg.destino === targetId) {
-          setInterruptedLeg(activeLeg);
-        } else if (activeItinerary && currentLegIndex < activeItinerary.length) {
-          const futureLegs = activeItinerary.slice(currentLegIndex);
-          const isAffected = futureLegs.some(leg => leg.origen === sourceId && leg.destino === targetId);
-          if (isAffected) {
-            alert(`ATENCIÓN: La ruta ${sourceId} → ${targetId} ha sido bloqueada. Tu itinerario futuro se ve afectado. Recalculando ruta...`);
-            handleInterruptionComplete(tripStats.currentAirportId);
-          }
-        }
+    
+    if (link.activa === false) {
+      try {
+        await toggleRouteStatus(sourceId, targetId, true, null);
+        await loadData(true);
+      } catch (err) {
+        alert("Error al modificar estado de la ruta");
       }
-    } catch (err) {
-      alert("Error al modificar estado de la ruta");
+    } else {
+      setLinkToBlock({ source: sourceId, target: targetId });
     }
   };
 
-  const handleExplicitInterruption = async () => {
+  const recalculateFreeModeSuggestion = async (airport, budget, timeRemaining, visited) => {
+    try {
+      const args = { 
+        origen: airport, 
+        presupuesto: budget, 
+        tiempoDisponible: timeRemaining / 60,
+        visitados_previos: visited
+      };
+      const result = await planMaximizeDestinations(args);
+      if (result && result.itinerario_presupuesto && result.itinerario_presupuesto.ruta) {
+        const futureRoute = result.itinerario_presupuesto.ruta;
+        const futurePart = futureRoute[0] === airport ? futureRoute.slice(1) : futureRoute;
+        const pastPart = visited[visited.length - 1] === airport ? visited.slice(0, -1) : visited;
+        setSuggestedRoute([...pastPart, airport, ...futurePart]);
+      }
+    } catch (err) {
+      console.error("Error recalculando sugerencia", err);
+    }
+  };
+
+  const confirmLinkBlock = async (motivo) => {
+    if (!linkToBlock) return;
+    const { source, target } = linkToBlock;
+    setLinkToBlock(null);
+    try {
+      await toggleRouteStatus(source, target, false, motivo);
+      await loadData(true);
+      
+      if (activeLeg && activeLeg.origen === source && activeLeg.destino === target) {
+        setInterruptedLeg({ ...activeLeg, motivo });
+      } else if (activeItinerary && currentLegIndex < activeItinerary.length) {
+        const futureLegs = activeItinerary.slice(currentLegIndex);
+        const isAffected = futureLegs.some(leg => leg.origen === source && leg.destino === target);
+        if (isAffected) {
+          alert(`ATENCIÓN: La ruta ${source} → ${target} ha sido bloqueada. Tu itinerario futuro se ve afectado. Recalculando ruta...`);
+          handleInterruptionComplete(tripStats.currentAirportId);
+        }
+      }
+
+      if (tripMode === 'free') {
+        await recalculateFreeModeSuggestion(tripStats.currentAirportId, tripStats.budget, tripStats.timeRemaining, visitedAirports);
+      }
+    } catch (err) {
+      alert("Error al bloquear la ruta");
+    }
+  };
+
+  const handleExplicitInterruption = async (motivo) => {
     if (!activeLeg) return;
     try {
       // Bloquear la ruta actual en el backend
-      await toggleRouteStatus(activeLeg.origen, activeLeg.destino, false);
+      await toggleRouteStatus(activeLeg.origen, activeLeg.destino, false, motivo);
       await loadData(true);
-      setInterruptedLeg(activeLeg);
+      setInterruptedLeg({ ...activeLeg, motivo });
+
+      if (tripMode === 'free') {
+        await recalculateFreeModeSuggestion(tripStats.currentAirportId, tripStats.budget, tripStats.timeRemaining, visitedAirports);
+      }
     } catch (err) {
       alert("Error al interrumpir la ruta actual");
     }
@@ -201,8 +251,8 @@ function App() {
       ...prev,
       budget: prev.budget - stayData.totalCost + stayData.totalEarnings,
       timeRemaining: prev.timeRemaining - stayData.totalTime,
-      hoursSinceMeal: stayData.resetMeal ? 0 : prev.hoursSinceMeal + (stayData.totalTime / 60),
-      hoursSinceSleep: stayData.resetSleep ? 0 : prev.hoursSinceSleep + (stayData.totalTime / 60)
+      hoursSinceMeal: stayData.resetMeal ? (stayData.totalTime / 60) : prev.hoursSinceMeal + (stayData.totalTime / 60),
+      hoursSinceSleep: stayData.resetSleep ? (stayData.totalTime / 60) : prev.hoursSinceSleep + (stayData.totalTime / 60)
     }));
 
     // Record history
@@ -268,7 +318,7 @@ function App() {
     setTripStats(prev => {
       const newHoursSinceMeal = prev.hoursSinceMeal + (flightData.tiempo / 60);
       const originNode = graphData.nodes.find(n => n.id === flightData.origen);
-      const mealInterval = graphData.config?.configuracionGlobal?.intervaloAlimentacion || 8;
+      const mealInterval = graphData.config?.intervaloAlimentacion || 8;
       
       return {
         ...prev,
@@ -319,7 +369,13 @@ function App() {
       try {
         let newResults;
         const remainingTimeHours = tripStats.timeRemaining / 60;
-        const newArgs = { ...planningParams.args, origen: returnAirport, presupuesto: tripStats.budget, tiempoDisponible: remainingTimeHours };
+        const newArgs = { 
+          ...planningParams.args, 
+          origen: returnAirport, 
+          presupuesto: tripStats.budget, 
+          tiempoDisponible: remainingTimeHours,
+          visitados_previos: visitedAirports
+        };
         
         if (planningParams.type === 'maximize') {
           newResults = await planMaximizeDestinations(newArgs);
@@ -345,14 +401,8 @@ function App() {
   };
 
   const handleStopTrip = () => {
+    setTripPhase('finished');
     setIsSimulating(false);
-    setTripPhase('none');
-    setTripMode('guided');
-    setActiveItinerary(null);
-    setActiveLeg(null);
-    setTravelerProgress(0);
-    setVisitedAirports([]);
-    setHighlightedRoute([]);
   };
 
   return (
@@ -420,7 +470,15 @@ function App() {
           results={planResults}
           airports={graphData.nodes}
           onClose={handleClearResults}
-          onHighlightRoute={(route) => setHighlightedRoute(route)}
+          onHighlightRoute={(route) => {
+            if (planResults.isRecalculation) {
+                const lastVisited = visitedAirports[visitedAirports.length - 1];
+                const futureRoute = route[0] === lastVisited ? route.slice(1) : route;
+                setHighlightedRoute([...visitedAirports, ...futureRoute]);
+            } else {
+                setHighlightedRoute(route);
+            }
+          }}
           onStartTrip={(itinerary) => handleStartTrip(itinerary, planningParams.args.presupuesto, planningParams.args.tiempoDisponible, planResults.isRecalculation)}
         />
       )}
@@ -457,6 +515,7 @@ function App() {
           stats={tripStats}
           config={graphData.config}
           visitedAirports={visitedAirports}
+          suggestedRoute={suggestedRoute}
           onSelectDestination={handleFreeDestinationSelected}
           onFinishTrip={handleFinishFreeTrip}
         />
@@ -470,6 +529,7 @@ function App() {
           onInterruption={handleInterruptionComplete}
           onRequestInterruption={handleExplicitInterruption}
           isInterrupted={!!interruptedLeg}
+          interruptedLeg={interruptedLeg}
         />
       )}
 
@@ -489,6 +549,45 @@ function App() {
         <button className="stop-sim-btn" onClick={handleStopTrip}>
           Detener Viaje
         </button>
+      )}
+
+      {linkToBlock && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div className="modal-content" style={{ background: '#1A1A24', padding: '20px', borderRadius: '8px', width: '350px', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
+                <h3 style={{ marginTop: 0, color: 'var(--danger)' }}>Bloquear Ruta</h3>
+                <p style={{ margin: '5px 0 15px', color: '#ccc', fontSize: '14px' }}>
+                    {linkToBlock.source} ✈️ {linkToBlock.target}
+                </p>
+                <label style={{ display: 'block', margin: '15px 0 5px', color: '#ccc', fontSize: '12px' }}>Seleccione el motivo:</label>
+                <select 
+                    id="link-block-reason"
+                    style={{ width: '100%', padding: '10px', background: '#2A2A35', color: '#fff', border: '1px solid #444', borderRadius: '4px', marginBottom: '20px', outline: 'none' }}
+                >
+                    <option value="Condiciones Meteorológicas">Condiciones Meteorológicas</option>
+                    <option value="Tráfico Aéreo">Tráfico Aéreo</option>
+                    <option value="Falla Mecánica">Falla Mecánica</option>
+                    <option value="Cierre de Espacio Aéreo">Cierre de Espacio Aéreo</option>
+                    <option value="Cancelación de Aerolínea">Cancelación de Aerolínea</option>
+                </select>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                    <button 
+                        onClick={() => {
+                            const motivo = document.getElementById('link-block-reason').value;
+                            confirmLinkBlock(motivo);
+                        }}
+                        style={{ flex: 1, padding: '10px', background: 'var(--danger)', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                    >
+                        Bloquear
+                    </button>
+                    <button 
+                        onClick={() => setLinkToBlock(null)}
+                        style={{ flex: 1, padding: '10px', background: '#444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}
+                    >
+                        Cancelar
+                    </button>
+                </div>
+            </div>
+        </div>
       )}
       </>
       )}

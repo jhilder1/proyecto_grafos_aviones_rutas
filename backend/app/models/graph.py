@@ -82,7 +82,9 @@ class Grafo:
                     "distanciaKm": a.distanciaKm,
                     "aeronaves": a.aeronaves,
                     "costoBase": a.costoBase,
-                    "estanciaMinima": a.estanciaMinima
+                    "estanciaMinima": a.estanciaMinima,
+                    "activa": a.activa,
+                    "motivo_bloqueo": getattr(a, 'motivo_bloqueo', None)
                 })
                 
         return {"nodes": nodos, "edges": aristas, "config": self.config_global}

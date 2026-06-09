@@ -35,6 +35,7 @@ class MaxDestinosRequest(BaseModel):
     tiempoDisponible: float  # hours
     excluirSecundarios: bool = False
     tiposTransporte: Optional[List[str]] = None
+    visitados_previos: Optional[List[str]] = None
 
 
 class MejorRutaRequest(BaseModel):
@@ -43,12 +44,14 @@ class MejorRutaRequest(BaseModel):
     criterios: List[str]  # ["distancia", "costo", "tiempo"]
     excluirSecundarios: bool = False
     tiposTransporte: Optional[List[str]] = None
+    visitados_previos: Optional[List[str]] = None
 
 
 class RouteToggleRequest(BaseModel):
     origen: str
     destino: str
     activa: bool
+    motivo: Optional[str] = None
 
 
 class ConfigUpdateRequest(BaseModel):
@@ -74,6 +77,7 @@ async def upload_network(data: Dict[str, Any]):
     """Receives a full JSON network structure, saves it, and reloads."""
     global grafo_global
     try:
+        os.makedirs(os.path.dirname(JSON_PATH), exist_ok=True)
         with open(JSON_PATH, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=4, ensure_ascii=False)
         grafo_global = DataLoader.load_graph_from_json(JSON_PATH)
@@ -197,7 +201,8 @@ async def plan_maximize_destinations(req: MaxDestinosRequest):
         limite=req.presupuesto,
         tipo_limite="presupuesto",
         excluir_secundarios=req.excluirSecundarios,
-        tipos_preferidos=tipos
+        tipos_preferidos=tipos,
+        visitados_previos=req.visitados_previos
     )
 
     # b) Maximize destinations by time (time constraint, in minutes)
@@ -207,7 +212,8 @@ async def plan_maximize_destinations(req: MaxDestinosRequest):
         limite=tiempo_minutos,
         tipo_limite="tiempo",
         excluir_secundarios=req.excluirSecundarios,
-        tipos_preferidos=tipos
+        tipos_preferidos=tipos,
+        visitados_previos=req.visitados_previos
     )
     
     print("\n===== MAXIMIZAR POR TIEMPO =====")
@@ -270,7 +276,8 @@ async def plan_best_route(req: MejorRutaRequest):
         dist, pred, path = Algoritmos.dijkstra_simple(
             grafo_global, origen, destino, criterio,
             excluir_secundarios=req.excluirSecundarios,
-            tipos_preferidos=tipos
+            tipos_preferidos=tipos,
+            visitados_previos=req.visitados_previos
         )
 
         if not path:
@@ -324,7 +331,8 @@ async def toggle_route(req: RouteToggleRequest):
         raise HTTPException(status_code=404, detail=f"Ruta {origen} -> {destino} no encontrada")
 
     arista.activa = req.activa
-    return {"status": "success", "origen": origen, "destino": destino, "activa": arista.activa}
+    arista.motivo_bloqueo = req.motivo if not req.activa else None
+    return {"status": "success", "origen": origen, "destino": destino, "activa": arista.activa, "motivo": arista.motivo_bloqueo}
 
 
 # Legacy endpoint kept for compatibility
